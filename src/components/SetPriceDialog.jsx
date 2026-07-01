@@ -1,8 +1,9 @@
+﻿import { Service, VendorProfile, ClientProfile, Booking, Event, Conversation, Message, Review, Notification, Membership, Invoice, Region, Departement, Ville, Quartier, Fonction, PlatformFeedback, Contract, Dispute, Lead, Transaction, Payout, Refund, AppUser, Country, ServiceType } from '@/api/entities';
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { base44 } from "@/api/base44Client";
+
 
 export default function SetPriceDialog({ booking, onConfirm }) {
   const [price, setPrice] = useState(booking.total_amount || 0);
@@ -12,7 +13,7 @@ export default function SetPriceDialog({ booking, onConfirm }) {
     const amount = parseFloat(price);
     const commission = amount * 0.05; // 5% Commission
 
-    await base44.entities.Booking.update(booking.id, {
+    await Booking.update(booking.id, {
         total_amount: amount,
         commission_amount: commission,
         status: 'awaiting_payment'
@@ -22,7 +23,7 @@ export default function SetPriceDialog({ booking, onConfirm }) {
     // Note: In real app, we need to know who created the booking. 
     // Assuming booking.created_by is the client if they made it.
     if (booking.created_by) {
-        await base44.entities.Notification.create({
+        await Notification.create({
             user_id: booking.created_by,
             title: "Booking Accepted",
             message: `Your booking for ${booking.event_type} has been accepted. Please proceed to payment.`,
@@ -68,3 +69,4 @@ export default function SetPriceDialog({ booking, onConfirm }) {
     </Dialog>
   );
 }
+

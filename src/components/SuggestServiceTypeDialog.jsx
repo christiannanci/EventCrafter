@@ -1,4 +1,5 @@
-﻿import React, { useState } from 'react';
+﻿import { Service, VendorProfile, ClientProfile, Booking, Event, Conversation, Message, Review, Notification, Membership, Invoice, Region, Departement, Ville, Quartier, Fonction, PlatformFeedback, Contract, Dispute, Lead, Transaction, Payout, Refund, AppUser, Country, ServiceType } from '@/api/entities';
+import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
@@ -6,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
-import { base44 } from "@/api/base44Client";
+
 import { PlusCircle, Loader2, CheckCircle2 } from "lucide-react";
 
 export default function SuggestServiceTypeDialog({ onSubmitted }) {
@@ -50,7 +51,7 @@ export default function SuggestServiceTypeDialog({ onSubmitted }) {
             const code = "SRV_" + formData.abbreviation.toUpperCase().replace(/[^A-Z0-9]/g, '');
             const typeCode = "CAT_USER_REQ";
 
-            await base44.entities.ServiceType.create({
+            await ServiceType.create({
                 ...formData,
                 code_service: code,
                 code_typeservice: typeCode,
@@ -174,3 +175,5 @@ export default function SuggestServiceTypeDialog({ onSubmitted }) {
         </Dialog>
     );
 }
+
+

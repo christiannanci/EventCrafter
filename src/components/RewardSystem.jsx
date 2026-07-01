@@ -1,8 +1,9 @@
+﻿import { Service, VendorProfile, ClientProfile, Booking, Event, Conversation, Message, Review, Notification, Membership, Invoice, Region, Departement, Ville, Quartier, Fonction, PlatformFeedback, Contract, Dispute, Lead, Transaction, Payout, Refund, AppUser, Country, ServiceType } from '@/api/entities';
 /**
  * RN4: Système de récompenses ($2-$5 ou 1 crédit lead gratuit)
  */
 
-import { base44 } from "@/api/base44Client";
+
 import { NotificationService } from '@/components/NotificationService';
 
 /**
@@ -42,7 +43,7 @@ export const grantReward = async (vendorId, rewardType) => {
     }
 
     // Récupérer le profil vendeur
-    const profiles = await base44.entities.VendorProfile.filter({ user_id: vendorId });
+    const profiles = await VendorProfile.filter({ user_id: vendorId });
     if (profiles.length === 0) {
       throw new Error('Vendor profile not found');
     }
@@ -60,10 +61,10 @@ export const grantReward = async (vendorId, rewardType) => {
       updates.reward_credits = (vendorProfile.reward_credits || 0) + reward.credits;
     }
 
-    await base44.entities.VendorProfile.update(vendorProfile.id, updates);
+    await VendorProfile.update(vendorProfile.id, updates);
 
     // Créer une transaction pour traçabilité
-    await base44.entities.Transaction.create({
+    await Transaction.create({
       user_id: vendorId,
       amount: reward.amount,
       type: 'reward',
@@ -98,16 +99,16 @@ export const grantReward = async (vendorId, rewardType) => {
 export const checkAndGrantAutoRewards = async (vendorId) => {
   try {
     // Récupérer les données du vendeur
-    const profiles = await base44.entities.VendorProfile.filter({ user_id: vendorId });
+    const profiles = await VendorProfile.filter({ user_id: vendorId });
     if (profiles.length === 0) return;
 
     const vendorProfile = profiles[0];
-    const bookings = await base44.entities.Booking.filter({ planner_id: vendorId });
+    const bookings = await Booking.filter({ planner_id: vendorId });
     const completedBookings = bookings.filter(b => b.status === 'completed');
-    const reviews = await base44.entities.VendorReview.filter({ provider_id: vendorId, status: 'approved' });
+    const reviews = await VendorReview.filter({ provider_id: vendorId, status: 'approved' });
 
     // Vérifier les transactions déjà accordées pour éviter les doublons
-    const existingRewards = await base44.entities.Transaction.filter({
+    const existingRewards = await Transaction.filter({
       user_id: vendorId,
       type: 'reward'
     });
@@ -145,7 +146,7 @@ export const checkAndGrantAutoRewards = async (vendorId) => {
  */
 export const useRewardCredit = async (vendorId) => {
   try {
-    const profiles = await base44.entities.VendorProfile.filter({ user_id: vendorId });
+    const profiles = await VendorProfile.filter({ user_id: vendorId });
     if (profiles.length === 0) {
       throw new Error('Vendor profile not found');
     }
@@ -157,7 +158,7 @@ export const useRewardCredit = async (vendorId) => {
     }
 
     // Déduire 1 crédit
-    await base44.entities.VendorProfile.update(vendorProfile.id, {
+    await VendorProfile.update(vendorProfile.id, {
       reward_credits: vendorProfile.reward_credits - 1
     });
 
@@ -167,3 +168,4 @@ export const useRewardCredit = async (vendorId) => {
     return { success: false, error: error.message };
   }
 };
+

@@ -1,5 +1,6 @@
+﻿import { Service, VendorProfile, ClientProfile, Booking, Event, Conversation, Message, Review, Notification, Membership, Invoice, Region, Departement, Ville, Quartier, Fonction, PlatformFeedback, Contract, Dispute, Lead, Transaction, Payout, Refund, AppUser, Country, ServiceType } from '@/api/entities';
 import React, { useState, useEffect } from 'react';
-import { base44 } from "@/api/base44Client";
+
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -57,9 +58,9 @@ export default function ReviewModeration() {
     setLoading(true);
     try {
       const [services, vendors, clients] = await Promise.all([
-        base44.entities.Review.list(),
-        base44.entities.VendorReview.list(),
-        base44.entities.ClientReview.list(),
+        Review.list(),
+        VendorReview.list(),
+        ClientReview.list(),
       ]);
 
       setServiceReviews(services.sort((a, b) => new Date(b.created_date) - new Date(a.created_date)));
@@ -121,27 +122,27 @@ export default function ReviewModeration() {
   const recalculateRatings = async (review, entityName) => {
     try {
       if (entityName === 'Review' && review.service_id) {
-        const allReviews = await base44.entities.Review.filter({ 
+        const allReviews = await Review.filter({ 
           service_id: review.service_id,
           status: 'approved'
         });
         
         if (allReviews.length > 0) {
           const avgRating = allReviews.reduce((sum, r) => sum + r.rating, 0) / allReviews.length;
-          await base44.entities.Service.update(review.service_id, {
+          await Service.update(review.service_id, {
             rating: Math.round(avgRating * 10) / 10,
             review_count: allReviews.length
           });
         }
       } else if (entityName === 'VendorReview' && review.provider_id) {
-        const allReviews = await base44.entities.VendorReview.filter({ 
+        const allReviews = await VendorReview.filter({ 
           provider_id: review.provider_id,
           status: 'approved'
         });
         
         if (allReviews.length > 0) {
           const avgRating = allReviews.reduce((sum, r) => sum + r.rating, 0) / allReviews.length;
-          const vendorProfiles = await base44.entities.VendorProfile.filter({ user_id: review.provider_id });
+          const vendorProfiles = await VendorProfile.filter({ user_id: review.provider_id });
           if (vendorProfiles.length > 0) {
             // Stocker dans une métadonnée ou créer un champ rating dans VendorProfile si besoin
           }
@@ -181,7 +182,7 @@ export default function ReviewModeration() {
       let entityType = '';
 
       if (entityName === 'Review' && review.service_id) {
-        const services = await base44.entities.Service.filter({ id: review.service_id });
+        const services = await Service.filter({ id: review.service_id });
         if (services.length > 0) {
           recipientId = services[0].planner_id;
           entityType = 'service';
@@ -481,3 +482,4 @@ export default function ReviewModeration() {
     </div>
   );
 }
+

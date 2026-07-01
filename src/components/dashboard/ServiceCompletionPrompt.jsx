@@ -1,9 +1,10 @@
+﻿import { Service, VendorProfile, ClientProfile, Booking, Event, Conversation, Message, Review, Notification, Membership, Invoice, Region, Departement, Ville, Quartier, Fonction, PlatformFeedback, Contract, Dispute, Lead, Transaction, Payout, Refund, AppUser, Country, ServiceType } from '@/api/entities';
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
-import { base44 } from '@/api/base44Client';
+
 import { CheckCircle2, Star, Award, AlertCircle } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { NotificationService } from '@/components/NotificationService';
@@ -32,7 +33,7 @@ export default function ServiceCompletionPrompt({ dossier, userType, onComplete 
   const handleMarkComplete = async () => {
     setLoading(true);
     try {
-      const booking = await base44.entities.Booking.list();
+      const booking = await Booking.list();
       const currentBooking = booking.find(b => b.id === dossier.bookingId);
       
       if (!currentBooking) {
@@ -40,26 +41,26 @@ export default function ServiceCompletionPrompt({ dossier, userType, onComplete 
       }
 
       // Mettre à jour le statut
-      await base44.entities.Booking.update(dossier.bookingId, {
+      await Booking.update(dossier.bookingId, {
         status: 'completed',
         payment_status: 'fully_paid'
       });
 
       // Libérer les fonds si en escrow
-      const transactions = await base44.entities.Transaction.filter({ booking_id: dossier.bookingId });
+      const transactions = await Transaction.filter({ booking_id: dossier.bookingId });
       const escrowTx = transactions.find(t => t.status === 'escrow_held');
       
       if (escrowTx) {
-        await base44.entities.Transaction.update(escrowTx.id, {
+        await Transaction.update(escrowTx.id, {
           status: 'released',
           description: escrowTx.description + ' (Released on completion)'
         });
       }
 
       // Notification à l'admin
-      const adminUsers = await base44.entities.User.filter({ role: 'admin' });
+      const adminUsers = await User.filter({ role: 'admin' });
       for (const admin of adminUsers) {
-        await base44.entities.Notification.create({
+        await Notification.create({
           user_id: admin.id,
           title: '🏁 Service Terminé Confirmé',
           message: `Le dossier ${dossier.bookingId.substring(0, 8)} a été marqué comme terminé par ${userType === 'vendor' ? 'le prestataire' : 'le client'}`,
@@ -72,10 +73,10 @@ export default function ServiceCompletionPrompt({ dossier, userType, onComplete 
       // Notification à l'autre partie
       if (userType === 'vendor') {
         // Notifier le client
-        const allUsers = await base44.entities.User.list();
+        const allUsers = await User.list();
         const clientUser = allUsers.find(u => u.email === currentBooking.created_by);
         if (clientUser) {
-          await base44.entities.Notification.create({
+          await Notification.create({
             user_id: clientUser.id,
             title: '✅ Service Marqué Terminé',
             message: `Le prestataire a confirmé la fin du service. Laissez votre avis !`,
@@ -133,11 +134,11 @@ export default function ServiceCompletionPrompt({ dossier, userType, onComplete 
 
     setLoading(true);
     try {
-      const booking = await base44.entities.Booking.list();
+      const booking = await Booking.list();
       const currentBooking = booking.find(b => b.id === dossier.bookingId);
 
       // Créer l'avis
-      await base44.entities.ClientReview.create({
+      await ClientReview.create({
         booking_id: dossier.bookingId,
         service_id: currentBooking?.service_id,
         vendor_id: currentBooking?.planner_id,
@@ -148,24 +149,24 @@ export default function ServiceCompletionPrompt({ dossier, userType, onComplete 
       });
 
       // Mettre à jour la note moyenne du vendeur
-      const allReviews = await base44.entities.ClientReview.filter({ 
+      const allReviews = await ClientReview.filter({ 
         vendor_id: currentBooking?.planner_id 
       });
       const avgRating = allReviews.reduce((sum, r) => sum + r.rating, 0) / allReviews.length;
       
-      const vendorProfiles = await base44.entities.VendorProfile.filter({ 
+      const vendorProfiles = await VendorProfile.filter({ 
         user_id: currentBooking?.planner_id 
       });
       
       if (vendorProfiles.length > 0) {
         // Note: Il faudrait ajouter un champ rating sur VendorProfile
         // Pour l'instant on stocke dans les services
-        const services = await base44.entities.Service.filter({ 
+        const services = await Service.filter({ 
           planner_id: currentBooking?.planner_id 
         });
         
         for (const service of services) {
-          await base44.entities.Service.update(service.id, {
+          await Service.update(service.id, {
             rating: avgRating,
             review_count: allReviews.length
           });
@@ -320,3 +321,4 @@ export default function ServiceCompletionPrompt({ dossier, userType, onComplete 
     </>
   );
 }
+

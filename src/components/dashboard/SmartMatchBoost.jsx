@@ -1,3 +1,4 @@
+﻿import { Service, VendorProfile, ClientProfile, Booking, Event, Conversation, Message, Review, Notification, Membership, Invoice, Region, Departement, Ville, Quartier, Fonction, PlatformFeedback, Contract, Dispute, Lead, Transaction, Payout, Refund, AppUser, Country, ServiceType } from '@/api/entities';
 import React, { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -5,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Zap, Target, Clock, TrendingUp } from "lucide-react";
-import { base44 } from "@/api/base44Client";
+
 import { useToast } from "@/components/ui/use-toast";
 import { format, addWeeks } from "date-fns";
 
@@ -57,7 +58,7 @@ export default function SmartMatchBoost({ vendorProfile, onUpdate }) {
       const expiryDate = addWeeks(new Date(), 1);
 
       // Débiter et activer le boost
-      await base44.entities.VendorProfile.update(vendorProfile.id, {
+      await VendorProfile.update(vendorProfile.id, {
         account_balance: (vendorProfile.account_balance || 0) - BOOST_PRICE,
         smart_match_boost_active: true,
         smart_match_boost_category: selectedCategory,
@@ -65,7 +66,7 @@ export default function SmartMatchBoost({ vendorProfile, onUpdate }) {
       });
 
       // Créer transaction
-      await base44.entities.Transaction.create({
+      await Transaction.create({
         user_id: vendorProfile.user_id,
         amount: -BOOST_PRICE,
         type: 'ad_fee',
@@ -201,3 +202,4 @@ export default function SmartMatchBoost({ vendorProfile, onUpdate }) {
     </Card>
   );
 }
+

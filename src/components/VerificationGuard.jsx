@@ -1,9 +1,10 @@
+﻿import { Service, VendorProfile, ClientProfile, Booking, Event, Conversation, Message, Review, Notification, Membership, Invoice, Region, Departement, Ville, Quartier, Fonction, PlatformFeedback, Contract, Dispute, Lead, Transaction, Payout, Refund, AppUser, Country, ServiceType } from '@/api/entities';
 /**
  * RN1: Garde de vérification - Redirige les vendeurs non vérifiés
  */
 
 import React, { useEffect, useState } from 'react';
-import { base44 } from "@/api/base44Client";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ShieldCheck, AlertTriangle, Clock } from "lucide-react";
@@ -21,7 +22,7 @@ export default function VerificationGuard({ user, children }) {
     if (!user) return;
 
     try {
-      const profiles = await base44.entities.VendorProfile.filter({ user_id: user.id });
+      const profiles = await VendorProfile.filter({ user_id: user.id });
       if (profiles.length > 0) {
         setVendorProfile(profiles[0]);
       }
@@ -156,3 +157,4 @@ export default function VerificationGuard({ user, children }) {
   // Si vérifié, afficher le contenu normal
   return children;
 }
+

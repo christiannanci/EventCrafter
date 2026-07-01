@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+﻿import React, { useState, useEffect } from 'react';
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -27,7 +27,7 @@ export default function RewardConfigManager() {
   const { data: configs } = useQuery({
     queryKey: ['reward-config'],
     queryFn: async () => {
-      const data = await base44.entities.RewardConfig.filter({ config_key: 'default' });
+      const data = await RewardConfig.filter({ config_key: 'default' });
       return data;
     },
   });
@@ -42,9 +42,9 @@ export default function RewardConfigManager() {
   const saveMutation = useMutation({
     mutationFn: async (configData) => {
       if (configs && configs[0]) {
-        return await base44.entities.RewardConfig.update(configs[0].id, configData);
+        return await RewardConfig.update(configs[0].id, configData);
       } else {
-        return await base44.entities.RewardConfig.create({
+        return await RewardConfig.create({
           config_key: 'default',
           ...configData,
         });

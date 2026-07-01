@@ -1,5 +1,6 @@
+﻿import { Service, VendorProfile, ClientProfile, Booking, Event, Conversation, Message, Review, Notification, Membership, Invoice, Region, Departement, Ville, Quartier, Fonction, PlatformFeedback, Contract, Dispute, Lead, Transaction, Payout, Refund, AppUser, Country, ServiceType } from '@/api/entities';
 import React, { useState, useEffect } from 'react';
-import { base44 } from "@/api/base44Client";
+
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Star, User } from "lucide-react";
@@ -28,7 +29,7 @@ export default function ReviewsSection({ serviceId, serviceTitle, onReviewAdded 
   const fetchReviews = async () => {
     setLoading(true);
     try {
-      const allReviews = await base44.entities.Review.list();
+      const allReviews = await Review.list();
       const serviceReviews = (allReviews || [])
         .filter(r => r?.service_id === serviceId)
         .sort((a, b) => new Date(b?.created_date || 0) - new Date(a?.created_date || 0));
@@ -46,7 +47,7 @@ export default function ReviewsSection({ serviceId, serviceTitle, onReviewAdded 
     setSubmitting(true);
     try {
       // 1. Create Review
-      await base44.entities.Review.create({
+      await Review.create({
         service_id: serviceId,
         rating: newReview.rating,
         comment: newReview.comment
@@ -57,7 +58,7 @@ export default function ReviewsSection({ serviceId, serviceTitle, onReviewAdded 
       const totalRating = allReviews.reduce((acc, curr) => acc + (curr?.rating || 0), 0);
       const avgRating = allReviews.length > 0 ? totalRating / allReviews.length : 0;
 
-      await base44.entities.Service.update(serviceId, {
+      await Service.update(serviceId, {
         rating: parseFloat(avgRating.toFixed(1)),
         review_count: allReviews.length
       });
@@ -175,3 +176,4 @@ export default function ReviewsSection({ serviceId, serviceTitle, onReviewAdded 
     </section>
   );
 }
+

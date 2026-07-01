@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
-import { base44 } from "@/api/base44Client";
+
 import { CreditCard, Plus, Trash2, Edit2, Smartphone, Landmark, Wallet } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
@@ -38,7 +38,7 @@ export default function VendorBankAccountManager({ user }) {
 
     const fetchAccounts = async () => {
         try {
-            const data = await base44.entities.VendorBankAccount.filter({ user_id: user.id });
+            const data = await VendorBankAccount.filter({ user_id: user.id });
             // Sort by priority (ascending)
             data.sort((a, b) => (a.priority || 99) - (b.priority || 99));
             setAccounts(data);
@@ -62,10 +62,10 @@ export default function VendorBankAccountManager({ user }) {
             };
 
             if (isEditing && editId) {
-                await base44.entities.VendorBankAccount.update(editId, payload);
+                await VendorBankAccount.update(editId, payload);
                 toast({ title: "Updated", description: "Payment method updated successfully" });
             } else {
-                await base44.entities.VendorBankAccount.create(payload);
+                await VendorBankAccount.create(payload);
                 toast({ title: "Added", description: "Payment method added successfully" });
             }
             
@@ -83,7 +83,7 @@ export default function VendorBankAccountManager({ user }) {
     const handleDelete = async (id) => {
         if (!confirm("Are you sure you want to delete this payment method?")) return;
         try {
-            await base44.entities.VendorBankAccount.delete(id);
+            await VendorBankAccount.delete(id);
             toast({ title: "Deleted", description: "Payment method removed" });
             fetchAccounts();
         } catch (error) {

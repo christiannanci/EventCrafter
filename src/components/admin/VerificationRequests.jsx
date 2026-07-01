@@ -1,5 +1,6 @@
-﻿import React, { useState, useEffect } from 'react';
-import { base44 } from "@/api/base44Client";
+﻿import { Service, VendorProfile, ClientProfile, Booking, Event, Conversation, Message, Review, Notification, Membership, Invoice, Region, Departement, Ville, Quartier, Fonction, PlatformFeedback, Contract, Dispute, Lead, Transaction, Payout, Refund, AppUser, Country, ServiceType } from '@/api/entities';
+import React, { useState, useEffect } from 'react';
+
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -28,10 +29,10 @@ export default function VerificationRequests() {
         setLoading(true);
         try {
             const [reqs, clientProfs, vendorProfs, allUsers] = await Promise.all([
-                base44.entities.VerificationRequest.list('-created_date'),
-                base44.entities.ClientProfile.list(),
-                base44.entities.VendorProfile.list(),
-                base44.entities.User.list()
+                VerificationRequest.list('-created_date'),
+                ClientProfile.list(),
+                VendorProfile.list(),
+                User.list()
             ]);
 
             setRequests(reqs);
@@ -61,7 +62,7 @@ export default function VerificationRequests() {
         try {
             const currentUser = await base44.auth.me();
 
-            await base44.entities.VerificationRequest.update(selectedRequest.id, {
+            await VerificationRequest.update(selectedRequest.id, {
                 status: 'documents_sent',
                 admin_response: adminResponse,
                 admin_id: currentUser.id,
@@ -73,7 +74,7 @@ export default function VerificationRequests() {
             });
 
             // Notify client
-            await base44.entities.Notification.create({
+            await Notification.create({
                 user_id: selectedRequest.client_id,
                 title: "Documents requis pour vérification",
                 message: adminResponse,
@@ -121,7 +122,7 @@ export default function VerificationRequests() {
             const currentUser = await base44.auth.me();
             
             // Update request
-            await base44.entities.VerificationRequest.update(request.id, {
+            await VerificationRequest.update(request.id, {
                 status: 'approved',
                 approved_date: new Date().toISOString(),
                 admin_id: currentUser.id
@@ -132,19 +133,19 @@ export default function VerificationRequests() {
             if (profile) {
                 if (profile.user_id) {
                     // It's a VendorProfile
-                    await base44.entities.VendorProfile.update(request.profile_id, {
+                    await VendorProfile.update(request.profile_id, {
                         verification_status: 'verified'
                     });
                 } else {
                     // It's a ClientProfile
-                    await base44.entities.ClientProfile.update(request.profile_id, {
+                    await ClientProfile.update(request.profile_id, {
                         verification_status: 'verified'
                     });
                 }
             }
 
             // Notify client
-            await base44.entities.Notification.create({
+            await Notification.create({
                 user_id: request.client_id,
                 title: "✓ Compte vérifié avec succès",
                 message: "Félicitations ! Votre identité a été vérifiée. Vous bénéficiez maintenant de tous les avantages.",
@@ -192,7 +193,7 @@ export default function VerificationRequests() {
 
         setActionLoading(true);
         try {
-            await base44.entities.VerificationRequest.update(request.id, {
+            await VerificationRequest.update(request.id, {
                 status: 'rejected',
                 rejection_reason: reason
             });
@@ -202,19 +203,19 @@ export default function VerificationRequests() {
             if (profile) {
                 if (profile.user_id) {
                     // It's a VendorProfile
-                    await base44.entities.VendorProfile.update(request.profile_id, {
+                    await VendorProfile.update(request.profile_id, {
                         verification_status: 'rejected'
                     });
                 } else {
                     // It's a ClientProfile
-                    await base44.entities.ClientProfile.update(request.profile_id, {
+                    await ClientProfile.update(request.profile_id, {
                         verification_status: 'rejected'
                     });
                 }
             }
 
             // Notification cloche
-            await base44.entities.Notification.create({
+            await Notification.create({
                 user_id: request.client_id,
                 title: "Demande de vérification refusée ❌",
                 message: `Raison : ${reason}`,
@@ -459,3 +460,5 @@ export default function VerificationRequests() {
         </Card>
     );
 }
+
+

@@ -1,10 +1,11 @@
-﻿import React, { useState, useEffect } from 'react';
+﻿import { Service, VendorProfile, ClientProfile, Booking, Event, Conversation, Message, Review, Notification, Membership, Invoice, Region, Departement, Ville, Quartier, Fonction, PlatformFeedback, Contract, Dispute, Lead, Transaction, Payout, Refund, AppUser, Country, ServiceType } from '@/api/entities';
+import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
-import { base44 } from "@/api/base44Client";
+
 import { MapPin, User, Phone, Mail, Wallet, Shield, FileText, Upload, Trash2, Video, Music } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
@@ -160,9 +161,9 @@ export default function ClientProfileForm({ user, initialProfile, onSave }) {
             };
 
             if (initialProfile) {
-                await base44.entities.ClientProfile.update(initialProfile.id, dataToSave);
+                await ClientProfile.update(initialProfile.id, dataToSave);
             } else {
-                await base44.entities.ClientProfile.create(dataToSave);
+                await ClientProfile.create(dataToSave);
             }
 
             toast({
@@ -456,3 +457,5 @@ export default function ClientProfileForm({ user, initialProfile, onSave }) {
         </Card>
     );
 }
+
+

@@ -1,4 +1,5 @@
-﻿import React, { useState } from 'react';
+﻿import { Service, VendorProfile, ClientProfile, Booking, Event, Conversation, Message, Review, Notification, Membership, Invoice, Region, Departement, Ville, Quartier, Fonction, PlatformFeedback, Contract, Dispute, Lead, Transaction, Payout, Refund, AppUser, Country, ServiceType } from '@/api/entities';
+import React, { useState } from 'react';
 import { InvokeLLM, SendEmail, UploadFile, SendSMS, GenerateImage, ExtractDataFromUploadedFile } from '@/api/integrations';
 import {
   Dialog,
@@ -89,7 +90,7 @@ export default function DisputeDialog({ open, onOpenChange, booking, userType, o
     setSubmitting(true);
     try {
       // Récupérer le contrat associé
-      const contracts = await base44.entities.Contract.filter({ booking_id: booking.id });
+      const contracts = await Contract.filter({ booking_id: booking.id });
       const contract = contracts[0];
 
       if (!contract) {
@@ -105,7 +106,7 @@ export default function DisputeDialog({ open, onOpenChange, booking, userType, o
       const disputeCode = `DSP-${Date.now()}-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
 
       // Créer le litige
-      const dispute = await base44.entities.Dispute.create({
+      const dispute = await Dispute.create({
         dispute_code: disputeCode,
         booking_id: booking.id,
         contract_id: contract.id,
@@ -118,36 +119,36 @@ export default function DisputeDialog({ open, onOpenChange, booking, userType, o
 
       // Sauvegarder les preuves en tant que métadonnées (dans un champ texte)
       if (formData.preuveUrls.length > 0) {
-        await base44.entities.Dispute.update(dispute.id, {
+        await Dispute.update(dispute.id, {
           report_url: formData.preuveUrls.join(',')
         });
       }
 
       // OUVERTURE: Statut passe à "⚠️ En Litige" et BLOCAGE des paiements
-      await base44.entities.Booking.update(booking.id, {
+      await Booking.update(booking.id, {
         status: 'disputed'
       });
 
       // BLACKLISTE AUTOMATIQUE: Bloquer tous les paiements vers le prestataire
       const vendorId = booking.planner_id;
-      const transactions = await base44.entities.Transaction.list();
+      const transactions = await Transaction.list();
       const vendorTransactions = transactions.filter(
         tx => tx.to_user_id === vendorId && tx.status === 'escrow_held'
       );
       
       for (const tx of vendorTransactions) {
-        await base44.entities.Transaction.update(tx.id, {
+        await Transaction.update(tx.id, {
           status: 'blocked',
           description: tx.description + ' [BLOQUÉ - LITIGE EN COURS]'
         });
       }
 
       // ALERTE FLASH: Notification prioritaire immédiate aux admins
-      const allUsers = await base44.entities.User.list();
+      const allUsers = await User.list();
       const admins = allUsers.filter(u => u.role === 'admin');
       
       for (const admin of admins) {
-        await base44.entities.Notification.create({
+        await Notification.create({
           user_id: admin.id,
           title: '🚨 ALERTE FLASH - NOUVEAU LITIGE',
           message: `${disputeCode} - ${motifs.find(m => m.value === formData.motif)?.label}. Paiements BLOQUÉS. Arbitrage requis immédiatement.`,
@@ -160,7 +161,7 @@ export default function DisputeDialog({ open, onOpenChange, booking, userType, o
       // Notifier l'autre partie
       const otherPartyId = userType === 'client' ? booking.planner_id : booking.client_id;
       if (otherPartyId) {
-        await base44.entities.Notification.create({
+        await Notification.create({
           user_id: otherPartyId,
           title: '⚠️ Litige Signalé',
           message: `Un litige a été ouvert concernant votre prestation. Code: ${disputeCode}`,
@@ -359,3 +360,5 @@ export default function DisputeDialog({ open, onOpenChange, booking, userType, o
     </Dialog>
   );
 }
+
+

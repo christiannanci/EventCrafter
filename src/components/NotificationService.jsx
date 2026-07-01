@@ -1,4 +1,5 @@
-﻿import { base44 } from "@/api/base44Client";
+﻿import { Service, VendorProfile, ClientProfile, Booking, Event, Conversation, Message, Review, Notification, Membership, Invoice, Region, Departement, Ville, Quartier, Fonction, PlatformFeedback, Contract, Dispute, Lead, Transaction, Payout, Refund, AppUser, Country, ServiceType } from '@/api/entities';
+
 
 /**
  * Service centralisé pour gérer les notifications (base de données + email)
@@ -19,7 +20,7 @@ export const NotificationService = {
   async send({ userId, title, message, type = "system", link = "", userEmail = null, userName = null }) {
     try {
       // Créer notification en base de données
-      await base44.entities.Notification.create({
+      await Notification.create({
         user_id: userId,
         title,
         message,
@@ -31,7 +32,7 @@ export const NotificationService = {
       // Récupérer l'email si non fourni
       if (!userEmail) {
         try {
-          const users = await base44.entities.User.list();
+          const users = await User.list();
           const user = users.find(u => u.id === userId);
           userEmail = user?.email;
           userName = userName || user?.full_name || user?.email;
@@ -113,7 +114,7 @@ export const NotificationService = {
    */
   async sendToAdmins({ title, message, type = "system", link = "" }) {
     try {
-      const allUsers = await base44.entities.User.list();
+      const allUsers = await User.list();
       const admins = allUsers.filter(u => u.role === 'admin');
       
       for (const admin of admins) {
@@ -146,3 +147,5 @@ export const NotificationService = {
     await this.send({ userId: clientId, title, message, type, link });
   }
 };
+
+

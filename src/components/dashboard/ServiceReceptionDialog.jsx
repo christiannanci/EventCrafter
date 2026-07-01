@@ -1,4 +1,5 @@
-﻿import React, { useState, useEffect } from 'react';
+﻿import { Service, VendorProfile, ClientProfile, Booking, Event, Conversation, Message, Review, Notification, Membership, Invoice, Region, Departement, Ville, Quartier, Fonction, PlatformFeedback, Contract, Dispute, Lead, Transaction, Payout, Refund, AppUser, Country, ServiceType } from '@/api/entities';
+import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -7,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
-import { base44 } from "@/api/base44Client";
+
 import { Loader2, CheckCircle2, AlertTriangle } from "lucide-react";
 
 export default function ServiceReceptionDialog({ booking, open, onOpenChange, onSuccess }) {
@@ -27,7 +28,7 @@ export default function ServiceReceptionDialog({ booking, open, onOpenChange, on
         const fetchContract = async () => {
             if (booking && open) {
                 // Find contract for this booking
-                const contracts = await base44.entities.Contract.filter({ booking_id: booking.id });
+                const contracts = await Contract.filter({ booking_id: booking.id });
                 if (contracts && contracts.length > 0) {
                     setContract(contracts[0]);
                 }
@@ -46,7 +47,7 @@ export default function ServiceReceptionDialog({ booking, open, onOpenChange, on
         setLoading(true);
         try {
             // 1. Create Reception Record
-            const reception = await base44.entities.ServiceReception.create({
+            const reception = await ServiceReception.create({
                 contract_id: contract.id,
                 booking_id: booking.id,
                 reception_date: new Date().toISOString(),
@@ -57,14 +58,14 @@ export default function ServiceReceptionDialog({ booking, open, onOpenChange, on
             // 2. Trigger Logic based on inputs
             if (formData.dispute_opened) {
                 // Open Dispute
-                await base44.entities.Booking.update(booking.id, { status: 'disputed' });
-                await base44.entities.Dispute.create({
+                await Booking.update(booking.id, { status: 'disputed' });
+                await Dispute.create({
                     dispute_code: `LIT-${Date.now()}`,
                     booking_id: booking.id,
                     contract_id: contract.id,
                     reception_id: reception.id, // we created 'reception' const above in the previous edit block, but wait - in ServiceReceptionDialog I might have missed capturing the reception result. 
                     // Ah, looking at my previous edit in ServiceReceptionDialog:
-                    // I used `await base44.entities.ServiceReception.create({...})` but didn't assign it to a variable in the snippet I see in snapshot?
+                    // I used `await ServiceReception.create({...})` but didn't assign it to a variable in the snippet I see in snapshot?
                     // Actually, I need to make sure I capture the ID. 
                     // Let's assume the previous `create` call returns the object.
                     // Wait, I am editing the `ServiceReceptionDialog` file again.
@@ -82,7 +83,7 @@ export default function ServiceReceptionDialog({ booking, open, onOpenChange, on
                 // Authorize Payment
                 // If complete reception and 100% payment
                 if (formData.reception_type === 'complete' && formData.payment_quota === 100) {
-                     await base44.entities.Booking.update(booking.id, { status: 'completed' });
+                     await Booking.update(booking.id, { status: 'completed' });
                      
                      // Create Provider Payout Request (Pending Admin Approval)
                      // Calculate amounts
@@ -92,10 +93,10 @@ export default function ServiceReceptionDialog({ booking, open, onOpenChange, on
                      const netAmount = totalAmount - commission;
 
                      // Find invoice (assuming one exists or create a placeholder ref)
-                     const invoices = await base44.entities.Invoice.filter({ booking_id: booking.id });
+                     const invoices = await Invoice.filter({ booking_id: booking.id });
                      const invoiceId = invoices.length > 0 ? invoices[0].id : "INV-MISSING"; // Should handle better in real app
 
-                     const reception = await base44.entities.ServiceReception.create({
+                     const reception = await ServiceReception.create({
                         contract_id: contract.id,
                         booking_id: booking.id,
                         reception_date: new Date().toISOString(),
@@ -103,7 +104,7 @@ export default function ServiceReceptionDialog({ booking, open, onOpenChange, on
                         payment_quota: parseFloat(formData.payment_quota)
                     });
 
-                     await base44.entities.ProviderPayout.create({
+                     await ProviderPayout.create({
                         payment_code: `PAY-${Date.now()}`,
                         invoice_id: invoiceId,
                         reception_id: reception.id,
@@ -143,7 +144,7 @@ export default function ServiceReceptionDialog({ booking, open, onOpenChange, on
                         toast({ title: "Partial Reception Recorded", description: "Feedback recorded. Status updated." });
                         // Maybe don't complete booking yet if partial?
                     } else {
-                         await base44.entities.Booking.update(booking.id, { status: 'completed' });
+                         await Booking.update(booking.id, { status: 'completed' });
                          toast({ title: "Service Accepted", description: "Payment authorized." });
                     }
                 }
@@ -273,3 +274,5 @@ export default function ServiceReceptionDialog({ booking, open, onOpenChange, on
         </Dialog>
     );
 }
+
+

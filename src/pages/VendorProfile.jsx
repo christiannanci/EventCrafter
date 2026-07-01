@@ -1,5 +1,6 @@
-﻿import React, { useState, useEffect } from 'react';
-import { base44 } from "@/api/base44Client";
+﻿import { Service, VendorProfile, ClientProfile, Booking, Event, Conversation, Message, Review, Notification, Membership, Invoice, Region, Departement, Ville, Quartier, Fonction, PlatformFeedback, Contract, Dispute, Lead, Transaction, Payout, Refund, AppUser, Country, ServiceType } from '@/api/entities';
+import React, { useState, useEffect } from 'react';
+
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
@@ -21,7 +22,7 @@ export default function VendorProfile() {
         const currentUser = await base44.auth.me();
         setUser(currentUser);
         
-        const profiles = await base44.entities.VendorProfile.filter({ user_id: currentUser.id });
+        const profiles = await VendorProfile.filter({ user_id: currentUser.id });
         if (profiles.length > 0) {
           setVendorProfile(profiles[0]);
         }
@@ -36,7 +37,7 @@ export default function VendorProfile() {
 
   const refetchProfile = async () => {
     if (!user) return;
-    const profiles = await base44.entities.VendorProfile.filter({ user_id: user.id });
+    const profiles = await VendorProfile.filter({ user_id: user.id });
     if (profiles.length > 0) {
       setVendorProfile(profiles[0]);
     }
@@ -90,7 +91,7 @@ export default function VendorProfile() {
                   const urls = results.map(r => r.file_url);
                   
                   const currentDocs = vendorProfile.verification_docs || [];
-                  await base44.entities.VendorProfile.update(vendorProfile.id, {
+                  await VendorProfile.update(vendorProfile.id, {
                     verification_docs: [...currentDocs, ...urls]
                   });
                   
@@ -121,14 +122,14 @@ export default function VendorProfile() {
                 disabled={!vendorProfile?.verification_docs?.length}
                 onClick={async () => {
                   try {
-                    const requests = await base44.entities.VerificationRequest.filter({
+                    const requests = await VerificationRequest.filter({
                       client_id: user.id,
                       profile_id: vendorProfile.id,
                       status: 'pending'
                     });
                     
                     if (requests.length > 0) {
-                      await base44.entities.VerificationRequest.update(requests[0].id, {
+                      await VerificationRequest.update(requests[0].id, {
                         status: 'documents_received'
                       });
                       
@@ -185,3 +186,5 @@ export default function VendorProfile() {
     </div>
   );
 }
+
+

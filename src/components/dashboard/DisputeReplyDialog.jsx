@@ -1,4 +1,5 @@
-﻿import React, { useState, useEffect } from 'react';
+﻿import { Service, VendorProfile, ClientProfile, Booking, Event, Conversation, Message, Review, Notification, Membership, Invoice, Region, Departement, Ville, Quartier, Fonction, PlatformFeedback, Contract, Dispute, Lead, Transaction, Payout, Refund, AppUser, Country, ServiceType } from '@/api/entities';
+import React, { useState, useEffect } from 'react';
 import { InvokeLLM, SendEmail, UploadFile, SendSMS, GenerateImage, ExtractDataFromUploadedFile } from '@/api/integrations';
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
@@ -39,7 +40,7 @@ export default function DisputeReplyDialog({ open, onOpenChange, booking, userTy
   const loadDispute = async () => {
     setLoadingDispute(true);
     try {
-      const disputes = await base44.entities.Dispute.filter({ booking_id: booking.id });
+      const disputes = await Dispute.filter({ booking_id: booking.id });
       const openDispute = disputes.find(d => !d.is_closed);
       setDispute(openDispute || null);
     } catch (e) {
@@ -87,16 +88,16 @@ export default function DisputeReplyDialog({ open, onOpenChange, booking, userTy
       const currentEvidences = dispute.report_url ? dispute.report_url.split(',') : [];
       const allEvidences = [...currentEvidences, ...preuveUrls].filter(Boolean);
 
-      await base44.entities.Dispute.update(dispute.id, {
+      await Dispute.update(dispute.id, {
         description: updatedDescription,
         report_url: allEvidences.join(',')
       });
 
       // Notifier les admins
-      const allUsers = await base44.entities.User.list();
+      const allUsers = await User.list();
       const admins = allUsers.filter(u => u.role === 'admin');
       for (const admin of admins) {
-        await base44.entities.Notification.create({
+        await Notification.create({
           user_id: admin.id,
           title: `📝 Réponse au Litige ${dispute.dispute_code}`,
           message: `La partie adverse (${party}) a soumis son contre-argument. Dossier à revoir.`,
@@ -228,3 +229,5 @@ export default function DisputeReplyDialog({ open, onOpenChange, booking, userTy
     </Dialog>
   );
 }
+
+

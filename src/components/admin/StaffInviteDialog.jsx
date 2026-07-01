@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { base44 } from '@/api/base44Client';
+﻿import React, { useState } from 'react';
+
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -28,7 +28,7 @@ export default function StaffInviteDialog({ onSuccess }) {
       // Wait a bit for user creation, then update staff_role
       setTimeout(async () => {
         try {
-          const users = await base44.entities.User.filter({ email });
+          const users = await User.filter({ email });
           if (users.length > 0) {
             const response = await base44.functions.invoke('updateUserStaffRole', { 
               userId: users[0].id, 

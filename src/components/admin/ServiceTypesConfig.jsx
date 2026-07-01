@@ -1,5 +1,6 @@
+﻿import { Service, VendorProfile, ClientProfile, Booking, Event, Conversation, Message, Review, Notification, Membership, Invoice, Region, Departement, Ville, Quartier, Fonction, PlatformFeedback, Contract, Dispute, Lead, Transaction, Payout, Refund, AppUser, Country, ServiceType } from '@/api/entities';
 import React, { useState, useEffect } from 'react';
-import { base44 } from "@/api/base44Client";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -14,7 +15,7 @@ export default function ServiceTypesConfig() {
     const fetchRequests = async () => {
         setLoading(true);
         try {
-            const data = await base44.entities.ServiceType.list();
+            const data = await ServiceType.list();
             setRequests(data.filter(item => item.status === 'pending'));
         } catch (error) {
             console.error(error);
@@ -29,7 +30,7 @@ export default function ServiceTypesConfig() {
     const handleAction = async (id, action) => {
         try {
             const newStatus = action === 'approve' ? 'active' : 'rejected';
-            await base44.entities.ServiceType.update(id, { status: newStatus });
+            await ServiceType.update(id, { status: newStatus });
             toast({
                 title: action === 'approve' ? "Approuvé" : "Rejeté",
                 description: `Demande ${action === 'approve' ? 'approuvée' : 'rejetée'} avec succès.`,
@@ -98,3 +99,4 @@ export default function ServiceTypesConfig() {
         </Card>
     );
 }
+

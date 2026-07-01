@@ -1,4 +1,5 @@
-﻿import React from 'react';
+﻿import { Service, VendorProfile, ClientProfile, Booking, Event, Conversation, Message, Review, Notification, Membership, Invoice, Region, Departement, Ville, Quartier, Fonction, PlatformFeedback, Contract, Dispute, Lead, Transaction, Payout, Refund, AppUser, Country, ServiceType } from '@/api/entities';
+import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createPageUrl } from './utils';
@@ -13,7 +14,7 @@ import {
   Globe,
   Shield
 } from "lucide-react";
-import { base44 } from "@/api/base44Client";
+
 import { LanguageProvider, useLanguage } from '@/components/LanguageContext';
 import { LocationProvider, useLocationContext } from '@/components/LocationContext';
 import { CurrencyProvider } from '@/components/CurrencyContext';
@@ -67,8 +68,8 @@ function LayoutContent({ children }) {
 
         // Paralléliser les deux requêtes profil
         const [vendorProfiles, clientProfiles] = await Promise.all([
-          base44.entities.VendorProfile.filter({ user_id: currentUser.id }),
-          base44.entities.ClientProfile.filter({ user_id: currentUser.id })
+          VendorProfile.filter({ user_id: currentUser.id }),
+          ClientProfile.filter({ user_id: currentUser.id })
         ]);
         
         if (!mounted) return;
@@ -465,3 +466,5 @@ export default function Layout({ children }) {
     </ErrorBoundary>
   );
 }
+
+

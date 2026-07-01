@@ -1,10 +1,11 @@
-﻿import React, { useState } from 'react';
+﻿import { Service, VendorProfile, ClientProfile, Booking, Event, Conversation, Message, Review, Notification, Membership, Invoice, Region, Departement, Ville, Quartier, Fonction, PlatformFeedback, Contract, Dispute, Lead, Transaction, Payout, Refund, AppUser, Country, ServiceType } from '@/api/entities';
+import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
-import { base44 } from "@/api/base44Client";
+
 import { Star, MessageSquare } from "lucide-react";
 import { v4 as uuidv4 } from 'uuid'; // Since we need to generate CODE_AVIS
 
@@ -65,7 +66,7 @@ export default function RateClientDialog({ booking, onRated }) {
             // Actually, if the user logged in, `base44.auth.me()` returns the object with ID.
             // But here I am the vendor rating the CLIENT.
             
-            // Let's Try: use `base44.entities.ClientProfile.filter({ contact_email: booking.created_by })`
+            // Let's Try: use `ClientProfile.filter({ contact_email: booking.created_by })`
             // If that fails, I might just use the `booking.created_by` as the ID and hope the Notification system accepts emails (it usually doesn't, it needs user_id).
             
             // BETTER APPROACH: Update Booking schema to include `client_id`? Too late/complex.
@@ -75,7 +76,7 @@ export default function RateClientDialog({ booking, onRated }) {
             // So it is EMAIL.
             
             // I will try to find the user ID from the ClientProfile.
-            const profiles = await base44.entities.ClientProfile.list();
+            const profiles = await ClientProfile.list();
             const clientProfile = profiles.find(p => p.contact_email === booking.created_by);
             
             const targetClientId = clientProfile ? clientProfile.user_id : null;
@@ -88,7 +89,7 @@ export default function RateClientDialog({ booking, onRated }) {
 
             const currentUser = await base44.auth.me();
 
-            await base44.entities.ClientReview.create({
+            await ClientReview.create({
                 review_code: uuidv4(),
                 client_id: targetClientId || "unknown",
                 provider_id: currentUser.id,
@@ -98,12 +99,12 @@ export default function RateClientDialog({ booking, onRated }) {
             });
 
             // Notify all admins for review moderation
-            const allUsersForAdmin = await base44.entities.User.list();
+            const allUsersForAdmin = await User.list();
             const admins = allUsersForAdmin.filter(u => u.role === 'admin');
             
             for (const admin of admins) {
                 // Notification cloche
-                await base44.entities.Notification.create({
+                await Notification.create({
                     user_id: admin.id,
                     title: "⭐ Nouvel avis client à modérer",
                     message: `Avis ${rating}/5 pour un client. Cliquez pour approuver ou rejeter.`,
@@ -123,7 +124,7 @@ export default function RateClientDialog({ booking, onRated }) {
             // 2. Logic for Low Rating (< 3)
             if (rating < 3 && targetClientId) {
                 // Check for recurrence
-                const reviews = await base44.entities.ClientReview.filter({ client_id: targetClientId });
+                const reviews = await ClientReview.filter({ client_id: targetClientId });
                 const lowRatings = reviews.filter(r => r.rating < 3);
                 const count = lowRatings.length + 1;
 
@@ -142,7 +143,7 @@ export default function RateClientDialog({ booking, onRated }) {
                 }
 
                 // Notification cloche
-                await base44.entities.Notification.create({
+                await Notification.create({
                     user_id: targetClientId,
                     title: title,
                     message: message,
@@ -152,7 +153,7 @@ export default function RateClientDialog({ booking, onRated }) {
                 });
 
                 // Email notification
-                const allUsersForEmail = await base44.entities.User.list();
+                const allUsersForEmail = await User.list();
                 const clientUser = allUsersForEmail.find(u => u.id === targetClientId);
                 if (clientUser) {
                     await SendEmail({
@@ -239,3 +240,5 @@ export default function RateClientDialog({ booking, onRated }) {
         </Dialog>
     );
 }
+
+

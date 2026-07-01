@@ -1,10 +1,11 @@
+﻿import { Service, VendorProfile, ClientProfile, Booking, Event, Conversation, Message, Review, Notification, Membership, Invoice, Region, Departement, Ville, Quartier, Fonction, PlatformFeedback, Contract, Dispute, Lead, Transaction, Payout, Refund, AppUser, Country, ServiceType } from '@/api/entities';
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { base44 } from "@/api/base44Client";
+
 import { FileText, Plus, Download, Send, CreditCard, CheckCircle2, Clock, AlertCircle } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/components/ui/use-toast";
@@ -42,10 +43,10 @@ export default function InvoiceManager({ booking, currentUser, onPaymentClick })
     const fetchData = async () => {
         setLoading(true);
         try {
-            const invs = await base44.entities.Invoice.filter({ booking_id: booking.id });
+            const invs = await Invoice.filter({ booking_id: booking.id });
             setInvoices(invs);
 
-            const contracts = await base44.entities.Contract.filter({ booking_id: booking.id, status: 'signed' });
+            const contracts = await Contract.filter({ booking_id: booking.id, status: 'signed' });
             if (contracts.length > 0) {
                 const c = contracts[0];
                 setContract(c);
@@ -105,7 +106,7 @@ export default function InvoiceManager({ booking, currentUser, onPaymentClick })
                 ]
             };
 
-            await base44.entities.Invoice.create(invoiceData);
+            await Invoice.create(invoiceData);
             toast({ title: "Invoice Generated", description: "The invoice has been created successfully." });
             setView("list");
             fetchData();
@@ -320,3 +321,4 @@ export default function InvoiceManager({ booking, currentUser, onPaymentClick })
         </Dialog>
     );
 }
+

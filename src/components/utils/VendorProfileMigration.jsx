@@ -1,8 +1,9 @@
-import { base44 } from "@/api/base44Client";
+﻿import { Service, VendorProfile, ClientProfile, Booking, Event, Conversation, Message, Review, Notification, Membership, Invoice, Region, Departement, Ville, Quartier, Fonction, PlatformFeedback, Contract, Dispute, Lead, Transaction, Payout, Refund, AppUser, Country, ServiceType } from '@/api/entities';
+
 
 export async function migrateVendorProfiles() {
   try {
-    const allVendors = await base44.entities.VendorProfile.list('-created_date', 1000);
+    const allVendors = await VendorProfile.list('-created_date', 1000);
     
     const now = new Date().toISOString();
     const vendorsToUpdate = [];
@@ -29,7 +30,7 @@ export async function migrateVendorProfiles() {
 
     // Batch update all vendors
     for (const vendor of vendorsToUpdate) {
-      await base44.entities.VendorProfile.update(vendor.id, vendor.data);
+      await VendorProfile.update(vendor.id, vendor.data);
     }
 
     console.log(`Migration complete: ${vendorsToUpdate.length} vendors updated`);
@@ -46,3 +47,4 @@ export async function migrateVendorProfiles() {
     };
   }
 }
+

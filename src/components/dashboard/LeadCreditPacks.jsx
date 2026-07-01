@@ -1,10 +1,11 @@
+﻿import { Service, VendorProfile, ClientProfile, Booking, Event, Conversation, Message, Review, Notification, Membership, Invoice, Region, Departement, Ville, Quartier, Fonction, PlatformFeedback, Contract, Dispute, Lead, Transaction, Payout, Refund, AppUser, Country, ServiceType } from '@/api/entities';
 import React, { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Zap, Package, TrendingUp, Sparkles } from "lucide-react";
-import { base44 } from "@/api/base44Client";
+
 import { useToast } from "@/components/ui/use-toast";
 import { useCurrency } from '@/components/CurrencyContext';
 
@@ -65,13 +66,13 @@ export default function LeadCreditPacks({ vendorProfile, onUpdate }) {
       }
 
       // Débiter et ajouter les crédits
-      await base44.entities.VendorProfile.update(vendorProfile.id, {
+      await VendorProfile.update(vendorProfile.id, {
         account_balance: (vendorProfile.account_balance || 0) - pack.price,
         reward_credits: (vendorProfile.reward_credits || 0) + pack.credits
       });
 
       // Créer transaction
-      await base44.entities.Transaction.create({
+      await Transaction.create({
         user_id: vendorProfile.user_id,
         amount: -pack.price,
         type: 'ad_fee',
@@ -183,3 +184,4 @@ export default function LeadCreditPacks({ vendorProfile, onUpdate }) {
     </Card>
   );
 }
+

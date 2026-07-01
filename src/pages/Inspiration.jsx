@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { base44 } from "@/api/base44Client";
+﻿import React, { useState, useEffect } from 'react';
+
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -13,7 +13,7 @@ export default function Inspiration() {
   useEffect(() => {
     const init = async () => {
       try {
-        const data = await base44.entities.Inspiration.list();
+        const data = await Inspiration.list();
         setArticles(data);
       } catch (e) {
         // handle error

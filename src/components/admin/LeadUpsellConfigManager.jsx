@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+﻿import React, { useState, useEffect } from 'react';
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -30,7 +30,7 @@ export default function LeadUpsellConfigManager() {
   const { data: configs } = useQuery({
     queryKey: ['lead-pack-config'],
     queryFn: async () => {
-      const data = await base44.entities.LeadPackConfig.filter({ config_key: 'default' });
+      const data = await LeadPackConfig.filter({ config_key: 'default' });
       return data;
     },
   });
@@ -44,9 +44,9 @@ export default function LeadUpsellConfigManager() {
   const saveMutation = useMutation({
     mutationFn: async (configData) => {
       if (configs && configs[0]) {
-        return await base44.entities.LeadPackConfig.update(configs[0].id, configData);
+        return await LeadPackConfig.update(configs[0].id, configData);
       } else {
-        return await base44.entities.LeadPackConfig.create({
+        return await LeadPackConfig.create({
           config_key: 'default',
           ...configData,
         });

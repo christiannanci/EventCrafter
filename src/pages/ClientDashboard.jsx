@@ -1,5 +1,6 @@
+﻿import { Service, VendorProfile, ClientProfile, Booking, Event, Conversation, Message, Review, Notification, Membership, Invoice, Region, Departement, Ville, Quartier, Fonction, PlatformFeedback, Contract, Dispute, Lead, Transaction, Payout, Refund, AppUser, Country, ServiceType } from '@/api/entities';
 import React, { useState, useEffect } from 'react';
-import { base44 } from "@/api/base44Client";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -87,7 +88,7 @@ export default function ClientDashboard() {
         setUser(currentUser);
         
         if (currentUser) {
-          const clientProfiles = await base44.entities.ClientProfile.filter({ user_id: currentUser.id });
+          const clientProfiles = await ClientProfile.filter({ user_id: currentUser.id });
           if (clientProfiles.length === 0) {
             window.location.href = '/ProfileSelection';
             return;
@@ -138,7 +139,7 @@ export default function ClientDashboard() {
   const { data: clientProfile } = useQuery({
     queryKey: ['clientProfile', user?.id],
     queryFn: async () => {
-      const profiles = await base44.entities.ClientProfile.filter({ user_id: user.id });
+      const profiles = await ClientProfile.filter({ user_id: user.id });
       return profiles[0] || null;
     },
     enabled: !!user,
@@ -146,26 +147,26 @@ export default function ClientDashboard() {
 
   const { data: myEvents = [] } = useQuery({
     queryKey: ['events', user?.id],
-    queryFn: () => base44.entities.Event.filter({ client_id: user.id }, '-created_date', 50),
+    queryFn: () => Event.filter({ client_id: user.id }, '-created_date', 50),
     enabled: !!user,
   });
 
   const { data: myBookings = [] } = useQuery({
     queryKey: ['bookings', user?.email],
-    queryFn: () => base44.entities.Booking.filter({ created_by: user.email }, '-created_date', 100),
+    queryFn: () => Booking.filter({ created_by: user.email }, '-created_date', 100),
     enabled: !!user,
   });
 
   const { data: myLeads = [] } = useQuery({
     queryKey: ['leads', user?.id],
-    queryFn: () => base44.entities.Lead.filter({ client_id: user.id }, '-created_date', 50),
+    queryFn: () => Lead.filter({ client_id: user.id }, '-created_date', 50),
     enabled: !!user,
   });
 
   const { data: services = {} } = useQuery({
     queryKey: ['services'],
     queryFn: async () => {
-      const allServices = await base44.entities.Service.list('-created_date', 200);
+      const allServices = await Service.list('-created_date', 200);
       const map = {};
       allServices.forEach(s => map[s.id] = s);
       return map;
@@ -176,7 +177,7 @@ export default function ClientDashboard() {
   const { data: vendors = {} } = useQuery({
     queryKey: ['vendors'],
     queryFn: async () => {
-      const allVendors = await base44.entities.VendorProfile.list('-created_date', 100);
+      const allVendors = await VendorProfile.list('-created_date', 100);
       const map = {};
       allVendors.forEach(v => map[v.user_id] = v);
       return map;
@@ -186,7 +187,7 @@ export default function ClientDashboard() {
 
   // Mutations with cache invalidation
   const deleteBookingMutation = useMutation({
-    mutationFn: (bookingId) => base44.entities.Booking.delete(bookingId),
+    mutationFn: (bookingId) => Booking.delete(bookingId),
     onSuccess: () => {
       queryClient.invalidateQueries(['bookings']);
       toast({ title: "Service retiré" });
@@ -197,9 +198,9 @@ export default function ClientDashboard() {
     mutationFn: async (eventId) => {
       const eventBookings = myBookings.filter(b => b.event_id === eventId);
       for (const booking of eventBookings) {
-        await base44.entities.Booking.delete(booking.id);
+        await Booking.delete(booking.id);
       }
-      await base44.entities.Event.delete(eventId);
+      await Event.delete(eventId);
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['events', 'bookings']);
@@ -229,7 +230,7 @@ export default function ClientDashboard() {
       console.log("Panier:", cart);
 
       // Récupérer services nécessaires
-      const allServices = await base44.entities.Service.list('-created_date', 200);
+      const allServices = await Service.list('-created_date', 200);
       
       // Vérifier que tous les services du panier ont un planner_id valide
       const invalidServices = [];
@@ -246,7 +247,7 @@ export default function ClientDashboard() {
 
       const { generateEntityCode } = await import('../components/SecurityUtils');
       
-      const event = await base44.entities.Event.create({
+      const event = await Event.create({
         event_code: generateEntityCode('EVENT'),
         client_id: user.id,
         title: eventName,
@@ -282,7 +283,7 @@ export default function ClientDashboard() {
 
         console.log("Création booking pour service:", fullService.title, "vendeur:", vendorId);
         
-        await base44.entities.Booking.create({
+        await Booking.create({
           booking_code: generateEntityCode('BOOKING'),
           event_id: event.id,
           service_id: fullService.id,
@@ -298,14 +299,14 @@ export default function ClientDashboard() {
         });
 
         // Créer automatiquement une conversation avec le vendeur
-        const allConvs = await base44.entities.Conversation.list('-created_date', 100);
+        const allConvs = await Conversation.list('-created_date', 100);
         const existingConv = allConvs.find(c => 
           c.participants.includes(user.id) && 
           c.participants.includes(vendorId)
         );
 
         if (!existingConv) {
-          await base44.entities.Conversation.create({
+          await Conversation.create({
             participants: [String(user.id), String(vendorId)],
             last_message: `Nouvelle demande pour ${fullService.title}`,
             last_message_at: new Date().toISOString(),
@@ -314,7 +315,7 @@ export default function ClientDashboard() {
         }
 
         // Notify vendor
-        await base44.entities.Notification.create({
+        await Notification.create({
           user_id: vendorId,
           title: "📋 Nouvelle demande de réservation",
           message: `${user.full_name || user.email} souhaite réserver votre service "${fullService.title}" pour ${eventName}`,
@@ -523,7 +524,7 @@ export default function ClientDashboard() {
                               const vendorId = service.planner_id || service.created_by;
                               if (!vendorId) return;
                               
-                              const allConvs = await base44.entities.Conversation.list('-created_date', 100);
+                              const allConvs = await Conversation.list('-created_date', 100);
                               const existing = allConvs.find(c => 
                                 c.participants.includes(user.id) && 
                                 c.participants.includes(vendorId)
@@ -532,7 +533,7 @@ export default function ClientDashboard() {
                               if (existing) {
                                 window.location.href = `/Chat?conversationId=${existing.id}`;
                               } else {
-                                const newConv = await base44.entities.Conversation.create({
+                                const newConv = await Conversation.create({
                                   participants: [String(user.id), String(vendorId)],
                                   last_message: "Conversation démarrée",
                                   last_message_at: new Date().toISOString()
@@ -1015,3 +1016,4 @@ export default function ClientDashboard() {
     </div>
   );
 }
+

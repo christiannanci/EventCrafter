@@ -1,5 +1,6 @@
+﻿import { Service, VendorProfile, ClientProfile, Booking, Event, Conversation, Message, Review, Notification, Membership, Invoice, Region, Departement, Ville, Quartier, Fonction, PlatformFeedback, Contract, Dispute, Lead, Transaction, Payout, Refund, AppUser, Country, ServiceType } from '@/api/entities';
 import { useState, useEffect } from 'react';
-import { base44 } from "@/api/base44Client";
+
 import { toast } from "sonner";
 
 export function useVendorData(user) {
@@ -24,11 +25,11 @@ export function useVendorData(user) {
       setError(null);
 
       const [vendorProfiles, services, receivedBookings, types, fns] = await Promise.all([
-        base44.entities.VendorProfile.list().catch(() => []),
-        base44.entities.Service.filter({ created_by: user.email }).catch(() => []),
-        base44.entities.Booking.filter({ planner_id: user.id }, '-created_date', 100).catch(() => []),
-        base44.entities.ServiceType.list().catch(() => []),
-        base44.entities.Fonction.list().catch(() => [])
+        VendorProfile.list().catch(() => []),
+        Service.filter({ created_by: user.email }).catch(() => []),
+        Booking.filter({ planner_id: user.id }, '-created_date', 100).catch(() => []),
+        ServiceType.list().catch(() => []),
+        Fonction.list().catch(() => [])
       ]);
 
       setVendorProfile(vendorProfiles.find(p => p.user_id === user.id));
@@ -38,7 +39,7 @@ export function useVendorData(user) {
       setAllFunctions(fns.filter(f => !f.status || f.status === 'active'));
 
       // Fetch and filter leads
-      const allLeads = await base44.entities.Lead.filter({ status: 'open' }, '-created_date', 50).catch(() => []);
+      const allLeads = await Lead.filter({ status: 'open' }, '-created_date', 50).catch(() => []);
       let matchingLeads = allLeads.filter(lead => {
         if (lead.service_category === 'All') return true;
         return services.some(s => s.category === lead.service_category);
@@ -51,12 +52,12 @@ export function useVendorData(user) {
 
       // Membership status — parallel with leads
       const [memberships, membershipTypes] = await Promise.all([
-        base44.entities.Membership.filter(
+        Membership.filter(
           { user_id: user.id, status: 'active' }, 
           '-created_date', 
           10
         ).catch(() => []),
-        base44.entities.MembershipType.list().catch(() => [])
+        MembershipType.list().catch(() => [])
       ]);
       
       let currentStatus = 'free';
@@ -86,7 +87,7 @@ export function useVendorData(user) {
         setLeads(leadsThisMonth.slice(0, 10));
 
         // Check notification count
-        const allNotifications = await base44.entities.Notification.filter({
+        const allNotifications = await Notification.filter({
           user_id: user.id,
           type: 'post_request'
         }, '-created_date', 100).catch(() => []);
@@ -135,3 +136,4 @@ export function useVendorData(user) {
     setLeads
   };
 }
+

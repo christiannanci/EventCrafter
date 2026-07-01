@@ -1,5 +1,6 @@
+﻿import { Service, VendorProfile, ClientProfile, Booking, Event, Conversation, Message, Review, Notification, Membership, Invoice, Region, Departement, Ville, Quartier, Fonction, PlatformFeedback, Contract, Dispute, Lead, Transaction, Payout, Refund, AppUser, Country, ServiceType } from '@/api/entities';
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -28,7 +29,7 @@ export default function RefundPolicyManager() {
   const { data: configs } = useQuery({
     queryKey: ['refund-policy-config'],
     queryFn: async () => {
-      const data = await base44.entities.RefundPolicyConfig.filter({ config_key: 'default' });
+      const data = await RefundPolicyConfig.filter({ config_key: 'default' });
       return data;
     },
   });
@@ -37,7 +38,7 @@ export default function RefundPolicyManager() {
   const { data: refundRequests, isLoading: requestsLoading } = useQuery({
     queryKey: ['refund-requests'],
     queryFn: async () => {
-      const data = await base44.entities.LeadRefundRequest.list('-created_date', 100);
+      const data = await LeadRefundRequest.list('-created_date', 100);
       return data;
     },
   });
@@ -52,9 +53,9 @@ export default function RefundPolicyManager() {
   const saveMutation = useMutation({
     mutationFn: async (configData) => {
       if (configs && configs[0]) {
-        return await base44.entities.RefundPolicyConfig.update(configs[0].id, configData);
+        return await RefundPolicyConfig.update(configs[0].id, configData);
       } else {
-        return await base44.entities.RefundPolicyConfig.create({
+        return await RefundPolicyConfig.create({
           config_key: 'default',
           ...configData,
         });
@@ -73,7 +74,7 @@ export default function RefundPolicyManager() {
   const reviewMutation = useMutation({
     mutationFn: async ({ requestId, status, notes }) => {
       const request = refundRequests.find(r => r.id === requestId);
-      await base44.entities.LeadRefundRequest.update(requestId, {
+      await LeadRefundRequest.update(requestId, {
         status,
         admin_notes: notes,
         reviewed_at: new Date().toISOString(),
@@ -82,22 +83,22 @@ export default function RefundPolicyManager() {
 
       // Si approuvé, traiter le remboursement
       if (status === 'approved') {
-        const vendor = await base44.entities.VendorProfile.filter({ user_id: request.vendor_id });
+        const vendor = await VendorProfile.filter({ user_id: request.vendor_id });
         if (vendor[0]) {
           if (request.unlock_type === 'pay_per_lead') {
             // Créditer le portefeuille
-            await base44.entities.VendorProfile.update(vendor[0].id, {
+            await VendorProfile.update(vendor[0].id, {
               purchased_leads_allowance: (vendor[0].purchased_leads_allowance || 0) + 1
             });
           } else if (request.unlock_type === 'reward_credit') {
             // Restaurer le crédit bonus
-            await base44.entities.VendorProfile.update(vendor[0].id, {
+            await VendorProfile.update(vendor[0].id, {
               reward_credits: (vendor[0].reward_credits || 0) + 1
             });
           }
 
           // Notification au prestataire
-          await base44.entities.Notification.create({
+          await Notification.create({
             user_id: request.vendor_id,
             title: "💰 Remboursement Approuvé",
             message: `Votre demande de remboursement pour le lead a été approuvée. Votre ${request.unlock_type === 'reward_credit' ? 'crédit bonus a été restauré' : 'portefeuille a été crédité'}.`,
@@ -461,3 +462,4 @@ function RefundRequestCard({ request, onReview }) {
     </Card>
   );
 }
+

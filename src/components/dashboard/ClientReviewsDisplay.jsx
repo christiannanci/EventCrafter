@@ -1,5 +1,6 @@
+﻿import { Service, VendorProfile, ClientProfile, Booking, Event, Conversation, Message, Review, Notification, Membership, Invoice, Region, Departement, Ville, Quartier, Fonction, PlatformFeedback, Contract, Dispute, Lead, Transaction, Payout, Refund, AppUser, Country, ServiceType } from '@/api/entities';
 import React, { useState, useEffect } from 'react';
-import { base44 } from "@/api/base44Client";
+
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Star, StarHalf, Building2, Calendar } from "lucide-react";
@@ -14,7 +15,7 @@ export default function ClientReviewsDisplay({ clientUserId }) {
   useEffect(() => {
     const fetchReviews = async () => {
       try {
-        const allReviews = await base44.entities.ClientReview.list();
+        const allReviews = await ClientReview.list();
         const clientReviews = allReviews.filter(r => 
           r.client_id === clientUserId && r.status === 'approved'
         );
@@ -32,7 +33,7 @@ export default function ClientReviewsDisplay({ clientUserId }) {
 
         // Fetch vendor names
         const providerIds = [...new Set(clientReviews.map(r => r.provider_id))];
-        const vendorProfiles = await base44.entities.VendorProfile.list();
+        const vendorProfiles = await VendorProfile.list();
         const names = {};
         for (const id of providerIds) {
           const profile = vendorProfiles.find(p => p.user_id === id);
@@ -150,3 +151,4 @@ export default function ClientReviewsDisplay({ clientUserId }) {
     </Card>
   );
 }
+

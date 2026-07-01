@@ -1,3 +1,4 @@
+﻿import { Service, VendorProfile, ClientProfile, Booking, Event, Conversation, Message, Review, Notification, Membership, Invoice, Region, Departement, Ville, Quartier, Fonction, PlatformFeedback, Contract, Dispute, Lead, Transaction, Payout, Refund, AppUser, Country, ServiceType } from '@/api/entities';
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
@@ -6,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { base44 } from "@/api/base44Client";
+
 import { History } from "lucide-react";
 
 export default function LogInteractionDialog({ booking, currentUser }) {
@@ -31,7 +32,7 @@ export default function LogInteractionDialog({ booking, currentUser }) {
             const clientId = booking.client_id || booking.created_by; 
             const providerId = booking.planner_id;
 
-            await base44.entities.NegotiationLog.create({
+            await NegotiationLog.create({
                 booking_id: booking.id,
                 client_id: clientId,
                 provider_id: providerId,
@@ -137,3 +138,4 @@ export default function LogInteractionDialog({ booking, currentUser }) {
         </Dialog>
     );
 }
+

@@ -1,10 +1,11 @@
+﻿import { Service, VendorProfile, ClientProfile, Booking, Event, Conversation, Message, Review, Notification, Membership, Invoice, Region, Departement, Ville, Quartier, Fonction, PlatformFeedback, Contract, Dispute, Lead, Transaction, Payout, Refund, AppUser, Country, ServiceType } from '@/api/entities';
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Crown, Zap, Package, Clock, DollarSign, Sparkles, TrendingUp, Check } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
+
 import { getLeadPrice } from '@/components/LeadPricingCalculator';
 import { useToast } from '@/components/ui/use-toast';
 import { createPageUrl } from './utils';
@@ -36,7 +37,7 @@ export default function LeadUpsellModal({
 
   const loadConfig = async () => {
     try {
-      const configs = await base44.entities.LeadPackConfig.filter({ config_key: 'default' });
+      const configs = await LeadPackConfig.filter({ config_key: 'default' });
       if (configs[0]) {
         setConfig(configs[0]);
       } else {
@@ -63,7 +64,7 @@ export default function LeadUpsellModal({
     setLoading(true);
     try {
       // Créer une transaction
-      await base44.entities.Transaction.create({
+      await Transaction.create({
         user_id: vendorProfile.user_id,
         amount: singleLeadPrice,
         type: 'ad_fee',
@@ -73,7 +74,7 @@ export default function LeadUpsellModal({
       });
 
       // Incrémenter le quota
-      await base44.entities.VendorProfile.update(vendorProfile.id, {
+      await VendorProfile.update(vendorProfile.id, {
         purchased_leads_allowance: (vendorProfile.purchased_leads_allowance || 0) + 1,
       });
 
@@ -128,7 +129,7 @@ export default function LeadUpsellModal({
       }
 
       // Créer le pack
-      await base44.entities.VendorLeadPack.create({
+      await VendorLeadPack.create({
         vendor_id: vendorProfile.user_id,
         pack_type: packType,
         leads_remaining: leadsCount,
@@ -138,7 +139,7 @@ export default function LeadUpsellModal({
       });
 
       // Créer transaction
-      await base44.entities.Transaction.create({
+      await Transaction.create({
         user_id: vendorProfile.user_id,
         amount: price,
         type: 'ad_fee',
@@ -398,3 +399,4 @@ export default function LeadUpsellModal({
     </Dialog>
   );
 }
+

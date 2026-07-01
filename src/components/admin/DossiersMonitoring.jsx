@@ -1,5 +1,6 @@
+﻿import { Service, VendorProfile, ClientProfile, Booking, Event, Conversation, Message, Review, Notification, Membership, Invoice, Region, Departement, Ville, Quartier, Fonction, PlatformFeedback, Contract, Dispute, Lead, Transaction, Payout, Refund, AppUser, Country, ServiceType } from '@/api/entities';
 import React, { useState } from 'react';
-import { base44 } from '@/api/base44Client';
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -28,27 +29,27 @@ export default function DossiersMonitoring() {
   // Charger toutes les données nécessaires
   const { data: vendors } = useQuery({
     queryKey: ['all-vendors-monitoring'],
-    queryFn: () => base44.entities.VendorProfile.list('-created_date', 5000)
+    queryFn: () => VendorProfile.list('-created_date', 5000)
   });
 
   const { data: leadUnlocks } = useQuery({
     queryKey: ['lead-unlocks-monitoring'],
-    queryFn: () => base44.entities.LeadUnlock.list('-unlocked_at', 10000)
+    queryFn: () => LeadUnlock.list('-unlocked_at', 10000)
   });
 
   const { data: conversations } = useQuery({
     queryKey: ['conversations-monitoring'],
-    queryFn: () => base44.entities.Conversation.list('-created_date', 10000)
+    queryFn: () => Conversation.list('-created_date', 10000)
   });
 
   const { data: bookings } = useQuery({
     queryKey: ['bookings-monitoring'],
-    queryFn: () => base44.entities.Booking.list('-created_date', 10000)
+    queryFn: () => Booking.list('-created_date', 10000)
   });
 
   const { data: transactions } = useQuery({
     queryKey: ['transactions-boost'],
-    queryFn: () => base44.entities.Transaction.filter({ 
+    queryFn: () => Transaction.filter({ 
       description: { $regex: 'Smart Match Boost|Coup de Coeur' }
     })
   });
@@ -165,7 +166,7 @@ export default function DossiersMonitoring() {
       if (!convo) return;
 
       // Envoyer notification au vendeur
-      await base44.entities.Notification.create({
+      await Notification.create({
         user_id: convo.planner_id || convo.vendor_id,
         title: "⏰ Dossier en attente",
         message: "Un de vos dossiers est en discussion depuis plus de 7 jours. Relancez votre client pour conclure !",
@@ -453,3 +454,4 @@ export default function DossiersMonitoring() {
     </div>
   );
 }
+

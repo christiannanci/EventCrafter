@@ -1,10 +1,11 @@
-﻿import React, { useState } from 'react';
+﻿import { Service, VendorProfile, ClientProfile, Booking, Event, Conversation, Message, Review, Notification, Membership, Invoice, Region, Departement, Ville, Quartier, Fonction, PlatformFeedback, Contract, Dispute, Lead, Transaction, Payout, Refund, AppUser, Country, ServiceType } from '@/api/entities';
+import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
-import { base44 } from "@/api/base44Client";
+
 import { Star, MessageSquare } from "lucide-react";
 import { v4 as uuidv4 } from 'uuid';
 
@@ -27,7 +28,7 @@ export default function RateVendorDialog({ booking, onRated }) {
             const providerId = booking.planner_id;
 
             // Create Vendor Review
-            await base44.entities.VendorReview.create({
+            await VendorReview.create({
                 review_code: uuidv4(),
                 client_id: currentUser.id,
                 provider_id: providerId,
@@ -38,12 +39,12 @@ export default function RateVendorDialog({ booking, onRated }) {
             });
 
             // Notify all admins for review moderation
-            const allUsers = await base44.entities.User.list();
+            const allUsers = await User.list();
             const admins = allUsers.filter(u => u.role === 'admin');
             
             for (const admin of admins) {
                 // Notification cloche
-                await base44.entities.Notification.create({
+                await Notification.create({
                     user_id: admin.id,
                     title: "⭐ Nouvel avis prestataire à modérer",
                     message: `Avis ${rating}/5 pour un prestataire. Cliquez pour approuver ou rejeter.`,
@@ -63,7 +64,7 @@ export default function RateVendorDialog({ booking, onRated }) {
             // Logic for Low Rating (< 3) - Vendor Notifications
             if (rating < 3 && providerId) {
                 // Check for recurrence (fetching previous reviews for this vendor)
-                const reviews = await base44.entities.VendorReview.filter({ provider_id: providerId });
+                const reviews = await VendorReview.filter({ provider_id: providerId });
                 const lowRatings = reviews.filter(r => r.rating < 3);
                 const count = lowRatings.length + 1;
 
@@ -81,7 +82,7 @@ export default function RateVendorDialog({ booking, onRated }) {
                     type = "alert";
                 }
 
-                await base44.entities.Notification.create({
+                await Notification.create({
                     user_id: providerId,
                     title: title,
                     message: message,
@@ -91,7 +92,7 @@ export default function RateVendorDialog({ booking, onRated }) {
                 });
             } else {
                  // Good rating notification
-                 await base44.entities.Notification.create({
+                 await Notification.create({
                     user_id: providerId,
                     title: "New 5-Star Review! ⭐",
                     message: `You received a ${rating}-star review! Check it out to see what clients love about your service.`,
@@ -166,3 +167,5 @@ export default function RateVendorDialog({ booking, onRated }) {
         </Dialog>
     );
 }
+
+

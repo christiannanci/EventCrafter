@@ -1,5 +1,6 @@
+﻿import { Service, VendorProfile, ClientProfile, Booking, Event, Conversation, Message, Review, Notification, Membership, Invoice, Region, Departement, Ville, Quartier, Fonction, PlatformFeedback, Contract, Dispute, Lead, Transaction, Payout, Refund, AppUser, Country, ServiceType } from '@/api/entities';
 import React, { useState, useEffect } from 'react';
-import { base44 } from "@/api/base44Client";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -26,7 +27,7 @@ export default function VendorOnboarding() {
             const currentUser = await base44.auth.me();
             setUser(currentUser);
             // Check if already has profile
-            const profiles = await base44.entities.VendorProfile.list();
+            const profiles = await VendorProfile.list();
             const existing = profiles.find(p => p.user_id === currentUser.id);
             if (existing) {
                 navigate('/Dashboard');
@@ -41,7 +42,7 @@ export default function VendorOnboarding() {
   const handleSubmit = async () => {
     setLoading(true);
     try {
-        await base44.entities.VendorProfile.create({
+        await VendorProfile.create({
             user_id: user.id,
             business_name: formData.business_name,
             phone: formData.phone,
@@ -172,3 +173,4 @@ export default function VendorOnboarding() {
     </div>
   );
 }
+

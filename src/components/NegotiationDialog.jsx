@@ -1,10 +1,11 @@
+﻿import { Service, VendorProfile, ClientProfile, Booking, Event, Conversation, Message, Review, Notification, Membership, Invoice, Region, Departement, Ville, Quartier, Fonction, PlatformFeedback, Contract, Dispute, Lead, Transaction, Payout, Refund, AppUser, Country, ServiceType } from '@/api/entities';
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { base44 } from "@/api/base44Client";
+
 import { Calculator, FileText, Check } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { negotiationSchema, validateData } from '@/components/ValidationSchemas';
@@ -60,7 +61,7 @@ export default function NegotiationDialog({ booking, isClient, onConfirm }) {
 
       if (isClient) {
         // Client Accepting Offer
-        await base44.entities.Booking.update(booking.id, {
+        await Booking.update(booking.id, {
           status: 'contract_pending',
           negotiation_status: 'contrat_attendu'
         });
@@ -77,7 +78,7 @@ export default function NegotiationDialog({ booking, isClient, onConfirm }) {
         }
       } else {
         // Vendor Submitting Offer
-        await base44.entities.Booking.update(booking.id, {
+        await Booking.update(booking.id, {
           requested_unit_price: parseFloat(formData.unit_price),
           quantity: parseFloat(formData.quantity),
           unit_measure: formData.unit_measure,
@@ -94,7 +95,7 @@ export default function NegotiationDialog({ booking, isClient, onConfirm }) {
 
         // Notify Client
         if (booking.created_by) {
-          const users = await base44.entities.User.list();
+          const users = await User.list();
           const client = users.find(u => u.email === booking.created_by);
           if (client) {
             await NotificationService.sendToClient({
@@ -249,3 +250,4 @@ export default function NegotiationDialog({ booking, isClient, onConfirm }) {
     </Dialog>
   );
 }
+

@@ -1,6 +1,7 @@
+﻿import { Service, VendorProfile, ClientProfile, Booking, Event, Conversation, Message, Review, Notification, Membership, Invoice, Region, Departement, Ville, Quartier, Fonction, PlatformFeedback, Contract, Dispute, Lead, Transaction, Payout, Refund, AppUser, Country, ServiceType } from '@/api/entities';
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { base44 } from "@/api/base44Client";
+
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -55,25 +56,25 @@ export default function ServiceDetails() {
     const fetchDetails = async () => {
       if (!serviceId) return;
       
-      const data = await base44.entities.Service.list(); // Ideally .get(id)
+      const data = await Service.list(); // Ideally .get(id)
       const found = data.find(s => s.id === serviceId);
       setService(found);
       
       if (found) {
           // Fetch planner profile for WhatsApp
-          const profiles = await base44.entities.VendorProfile.list();
+          const profiles = await VendorProfile.list();
           const profile = profiles.find(p => p.user_id === (found.planner_id || found.created_by));
           setPlanner(profile);
 
           // Fetch Availability Slots
           try {
              const plannerId = found.planner_id || found.created_by;
-             const slots = await base44.entities.AvailabilitySlot.filter({ planner_id: plannerId });
+             const slots = await AvailabilitySlot.filter({ planner_id: plannerId });
              setAvailableSlots(slots);
           } catch(e) { console.error("Error fetching slots", e); }
 
           // Increment Views (Analytics)
-          await base44.entities.Service.update(found.id, { 
+          await Service.update(found.id, { 
               views: (found.views || 0) + 1 
           });
       }
@@ -142,7 +143,7 @@ export default function ServiceDetails() {
           finalDate = parseISO(selectedSlot.start_time);
       }
 
-      const newBooking = await base44.entities.Booking.create({
+      const newBooking = await Booking.create({
         service_id: service.id,
         planner_id: plannerId,
         client_name: currentUser.first_name || currentUser.email,
@@ -154,7 +155,7 @@ export default function ServiceDetails() {
       });
       
       // Create notification for planner
-      await base44.entities.Notification.create({
+      await Notification.create({
           user_id: plannerId,
           title: "New Booking Request",
           message: `You have a new booking request for ${service.title} on ${format(bookingDate, 'PPP')}.`,
@@ -365,7 +366,7 @@ export default function ServiceDetails() {
               onReviewAdded={() => {
                 // Refresh service details to get updated rating
                 const fetchUpdated = async () => {
-                  const data = await base44.entities.Service.list();
+                  const data = await Service.list();
                   const found = data.find(s => s.id === serviceId);
                   if (found) setService(found);
                 };
@@ -518,7 +519,7 @@ export default function ServiceDetails() {
                        return;
                      }
                      // Check if conversation exists
-                     const allConvs = await base44.entities.Conversation.list();
+                     const allConvs = await Conversation.list();
                      const existing = allConvs.find(c => 
                        c.participants.includes(currentUser.id) && 
                        c.participants.includes(service.planner_id)
@@ -527,7 +528,7 @@ export default function ServiceDetails() {
                      if (existing) {
                        window.location.href = `/Chat?conversationId=${existing.id}`;
                      } else {
-                       const newConv = await base44.entities.Conversation.create({
+                       const newConv = await Conversation.create({
                          participants: [String(currentUser.id), String(service.planner_id)],
                          last_message: "Started a conversation",
                          last_message_at: new Date().toISOString()
@@ -575,3 +576,4 @@ export default function ServiceDetails() {
     </div>
   );
 }
+

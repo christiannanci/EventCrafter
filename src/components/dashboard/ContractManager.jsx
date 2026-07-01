@@ -1,3 +1,4 @@
+﻿import { Service, VendorProfile, ClientProfile, Booking, Event, Conversation, Message, Review, Notification, Membership, Invoice, Region, Departement, Ville, Quartier, Fonction, PlatformFeedback, Contract, Dispute, Lead, Transaction, Payout, Refund, AppUser, Country, ServiceType } from '@/api/entities';
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
@@ -6,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { base44 } from "@/api/base44Client";
+
 import { FileSignature, PenLine, CheckCircle2, AlertCircle, Download } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/components/ui/use-toast";
@@ -37,16 +38,16 @@ export default function ContractManager({ booking, currentUser, onUpdate }) {
     const loadPartyNames = async () => {
         try {
             // Get provider name
-            const vendorProfiles = await base44.entities.VendorProfile.filter({ user_id: booking.planner_id });
+            const vendorProfiles = await VendorProfile.filter({ user_id: booking.planner_id });
             if (vendorProfiles.length > 0) {
                 setProviderName(vendorProfiles[0].business_name || 'Provider');
             }
 
             // Get client name
-            const allUsers = await base44.entities.User.list();
+            const allUsers = await User.list();
             const clientUser = allUsers.find(u => u.email === booking.created_by);
             if (clientUser) {
-                const clientProfiles = await base44.entities.ClientProfile.filter({ user_id: clientUser.id });
+                const clientProfiles = await ClientProfile.filter({ user_id: clientUser.id });
                 if (clientProfiles.length > 0) {
                     const profile = clientProfiles[0];
                     const fullName = profile.first_name && profile.last_name 
@@ -72,7 +73,7 @@ export default function ContractManager({ booking, currentUser, onUpdate }) {
     const fetchContract = async () => {
         setLoading(true);
         try {
-            const contracts = await base44.entities.Contract.filter({ booking_id: booking.id });
+            const contracts = await Contract.filter({ booking_id: booking.id });
             if (contracts.length > 0) {
                 const existing = contracts[0];
                 setContract(existing);
@@ -117,10 +118,10 @@ export default function ContractManager({ booking, currentUser, onUpdate }) {
         try {
             let savedContract;
             if (contract) {
-                savedContract = await base44.entities.Contract.update(contract.id, formData);
+                savedContract = await Contract.update(contract.id, formData);
                 toast({ title: "Contract Updated", description: "Changes saved successfully." });
             } else {
-                savedContract = await base44.entities.Contract.create(formData);
+                savedContract = await Contract.create(formData);
                 toast({ title: "Contract Created", description: "Contract draft created." });
             }
             setContract(savedContract);
@@ -142,7 +143,7 @@ export default function ContractManager({ booking, currentUser, onUpdate }) {
         if (!contract) return;
         setLoading(true);
         try {
-            const updated = await base44.entities.Contract.update(contract.id, {
+            const updated = await Contract.update(contract.id, {
                 status: 'pending_signatures'
             });
             setContract(updated);
@@ -178,12 +179,12 @@ export default function ContractManager({ booking, currentUser, onUpdate }) {
                 updateData.signed_date = new Date().toISOString();
                 
                 // Also update Booking status to move forward
-                await base44.entities.Booking.update(booking.id, {
+                await Booking.update(booking.id, {
                     status: 'awaiting_payment' // Move to payment phase
                 });
             }
 
-            const updated = await base44.entities.Contract.update(contract.id, updateData);
+            const updated = await Contract.update(contract.id, updateData);
             setContract(updated);
             toast({ title: "Signed", description: "You have signed the contract successfully." });
             if(onUpdate) onUpdate();
@@ -520,3 +521,4 @@ export default function ContractManager({ booking, currentUser, onUpdate }) {
         </Dialog>
     );
 }
+

@@ -1,5 +1,6 @@
+﻿import { Service, VendorProfile, ClientProfile, Booking, Event, Conversation, Message, Review, Notification, Membership, Invoice, Region, Departement, Ville, Quartier, Fonction, PlatformFeedback, Contract, Dispute, Lead, Transaction, Payout, Refund, AppUser, Country, ServiceType } from '@/api/entities';
 import React, { useState, useEffect } from 'react';
-import { base44 } from "@/api/base44Client";
+
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -40,14 +41,14 @@ export default function AddLocationDialog({ level, parentContext, open, onOpenCh
             if (level === 'ville') {
                 // Fetch departments
                 // If parentContext.region is set, filter by it
-                let depts = await base44.entities.Departement.list();
+                let depts = await Departement.list();
                 if (parentContext?.region) {
                     depts = depts.filter(d => d.region_code === parentContext.region);
                 }
                 setParentOptions(depts);
             } else if (level === 'quartier') {
                 // Parent is Ville
-                let villes = await base44.entities.Ville.list();
+                let villes = await Ville.list();
                 if (parentContext?.ville) {
                      // If we are adding a quartier, usually we selected a city.
                      // If city is selected, we can pre-fill or just show that one.
@@ -62,7 +63,7 @@ export default function AddLocationDialog({ level, parentContext, open, onOpenCh
                 setParentOptions(villes);
             } else if (level === 'departement') {
                 // Parent is Region
-                let regions = await base44.entities.Region.list();
+                let regions = await Region.list();
                 if (parentContext?.country) {
                     regions = regions.filter(r => r.country_code === parentContext.country);
                 }
@@ -74,7 +75,7 @@ export default function AddLocationDialog({ level, parentContext, open, onOpenCh
                 }
             } else if (level === 'arrondissement') {
                 // Parent is Departement
-                 let depts = await base44.entities.Departement.list();
+                 let depts = await Departement.list();
                  setParentOptions(depts);
             }
         } catch (e) {
@@ -113,19 +114,19 @@ export default function AddLocationDialog({ level, parentContext, open, onOpenCh
             };
 
             if (level === 'continent') {
-                await base44.entities.Continent.create(commonFields);
+                await Continent.create(commonFields);
             } else if (level === 'country') {
-                await base44.entities.Country.create({ ...commonFields, continent_code: formData.parent_id || 'AF' }); // Default AF
+                await Country.create({ ...commonFields, continent_code: formData.parent_id || 'AF' }); // Default AF
             } else if (level === 'region') {
-                await base44.entities.Region.create({ ...commonFields, country_code: formData.parent_id || 'CM' }); // Default CM
+                await Region.create({ ...commonFields, country_code: formData.parent_id || 'CM' }); // Default CM
             } else if (level === 'departement') {
-                await base44.entities.Departement.create({ ...commonFields, region_code: formData.parent_id });
+                await Departement.create({ ...commonFields, region_code: formData.parent_id });
             } else if (level === 'ville') {
-                await base44.entities.Ville.create({ ...commonFields, departement_code: formData.parent_id });
+                await Ville.create({ ...commonFields, departement_code: formData.parent_id });
             } else if (level === 'arrondissement') {
-                await base44.entities.Arrondissement.create({ ...commonFields, departement_code: formData.parent_id });
+                await Arrondissement.create({ ...commonFields, departement_code: formData.parent_id });
             } else if (level === 'quartier') {
-                await base44.entities.Quartier.create({ ...commonFields, ville_code: formData.parent_id });
+                await Quartier.create({ ...commonFields, ville_code: formData.parent_id });
             }
 
             toast({ 
@@ -226,3 +227,4 @@ export default function AddLocationDialog({ level, parentContext, open, onOpenCh
         </Dialog>
     );
 }
+

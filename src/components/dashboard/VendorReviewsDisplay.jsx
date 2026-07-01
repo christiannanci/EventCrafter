@@ -1,5 +1,6 @@
+﻿import { Service, VendorProfile, ClientProfile, Booking, Event, Conversation, Message, Review, Notification, Membership, Invoice, Region, Departement, Ville, Quartier, Fonction, PlatformFeedback, Contract, Dispute, Lead, Transaction, Payout, Refund, AppUser, Country, ServiceType } from '@/api/entities';
 import React, { useState, useEffect } from 'react';
-import { base44 } from "@/api/base44Client";
+
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Star, StarHalf, User, Calendar } from "lucide-react";
@@ -13,7 +14,7 @@ export default function VendorReviewsDisplay({ vendorUserId }) {
   useEffect(() => {
     const fetchReviews = async () => {
       try {
-        const allReviews = await base44.entities.VendorReview.list();
+        const allReviews = await VendorReview.list();
         const vendorReviews = allReviews.filter(r => 
           r.provider_id === vendorUserId && r.status === 'approved'
         );
@@ -138,3 +139,4 @@ export default function VendorReviewsDisplay({ vendorUserId }) {
     </Card>
   );
 }
+

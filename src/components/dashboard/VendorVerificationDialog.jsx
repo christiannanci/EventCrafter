@@ -1,9 +1,10 @@
-﻿import React, { useState } from 'react';
+﻿import { Service, VendorProfile, ClientProfile, Booking, Event, Conversation, Message, Review, Notification, Membership, Invoice, Region, Departement, Ville, Quartier, Fonction, PlatformFeedback, Contract, Dispute, Lead, Transaction, Payout, Refund, AppUser, Country, ServiceType } from '@/api/entities';
+import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { base44 } from "@/api/base44Client";
+
 import { useToast } from "@/components/ui/use-toast";
 import { Shield, Send, CheckCircle2, Clock, XCircle, FileSignature } from "lucide-react";
 
@@ -40,7 +41,7 @@ export default function VendorVerificationDialog({ profile, user, onUpdate }) {
             const requestCode = `VER-VENDOR-${new Date().getFullYear()}-${Math.floor(Math.random() * 100000)}`;
             
             // Create verification request
-            await base44.entities.VerificationRequest.create({
+            await VerificationRequest.create({
                 request_code: requestCode,
                 client_id: user.id,
                 profile_id: profile.id,
@@ -51,18 +52,18 @@ export default function VendorVerificationDialog({ profile, user, onUpdate }) {
 
             // Save uploaded docs to profile
             const currentDocs = profile.verification_docs || [];
-            await base44.entities.VendorProfile.update(profile.id, {
+            await VendorProfile.update(profile.id, {
                 verification_status: 'pending',
                 verification_docs: [...currentDocs, ...uploadedDocs]
             });
 
             // Notify all admins via notification bell AND email
-            const allUsers = await base44.entities.User.list();
+            const allUsers = await User.list();
             const admins = allUsers.filter(u => u.role === 'admin');
             
             for (const admin of admins) {
                 // Notification dans la cloche
-                await base44.entities.Notification.create({
+                await Notification.create({
                     user_id: admin.id,
                     title: "Nouvelle demande de vérification",
                     message: `${profile.business_name || user.full_name} a demandé la vérification de son compte prestataire avec ${uploadedDocs.length} document(s)`,
@@ -283,3 +284,5 @@ export default function VendorVerificationDialog({ profile, user, onUpdate }) {
         </Dialog>
     );
 }
+
+

@@ -1,9 +1,10 @@
+﻿import { Service, VendorProfile, ClientProfile, Booking, Event, Conversation, Message, Review, Notification, Membership, Invoice, Region, Departement, Ville, Quartier, Fonction, PlatformFeedback, Contract, Dispute, Lead, Transaction, Payout, Refund, AppUser, Country, ServiceType } from '@/api/entities';
 /**
  * Moteur de Recommandations Intelligent
  * Donne la priorité aux vendeurs Premium et Gold
  */
 
-import { base44 } from "@/api/base44Client";
+
 
 /**
  * Calcule le score de recommandation pour un service
@@ -173,9 +174,9 @@ export const getRecommendations = async (userId, limit = 10) => {
   try {
     // Charger les données nécessaires
     const [services, bookings, vendorProfiles] = await Promise.all([
-      base44.entities.Service.list('-created_date', 500),
-      base44.entities.Booking.list('-created_date', 1000),
-      base44.entities.VendorProfile.list()
+      Service.list('-created_date', 500),
+      Booking.list('-created_date', 1000),
+      VendorProfile.list()
     ]);
     
     // Filtrer les bookings de l'utilisateur
@@ -230,3 +231,4 @@ export const applyRecommendationScoring = (services, context) => {
     return services;
   }
 };
+

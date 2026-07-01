@@ -1,3 +1,4 @@
+﻿import { Service, VendorProfile, ClientProfile, Booking, Event, Conversation, Message, Review, Notification, Membership, Invoice, Region, Departement, Ville, Quartier, Fonction, PlatformFeedback, Contract, Dispute, Lead, Transaction, Payout, Refund, AppUser, Country, ServiceType } from '@/api/entities';
 import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,7 +10,7 @@ import {
   Calendar, Filter, Send, AlertTriangle, Crown,
   ChevronDown, ChevronUp, Activity, Target, Zap, CheckCircle2
 } from "lucide-react";
-import { base44 } from "@/api/base44Client";
+
 import { toast } from "sonner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { determineBudgetCategory } from '@/components/LeadPricingCalculator';
@@ -44,11 +45,11 @@ export default function LeadManagement() {
     setLoading(true);
     try {
       const [allLeads, allVendors, allUnlocks, allPacks, allTransactions] = await Promise.all([
-        base44.entities.Lead.list('-created_date', 1000),
-        base44.entities.VendorProfile.list('-created_date', 1000),
-        base44.entities.LeadUnlock.list('-unlocked_at', 1000),
-        base44.entities.VendorLeadPack.list('-created_date', 1000),
-        base44.entities.Transaction.filter({ type: 'ad_fee' }, '-created_date', 1000)
+        Lead.list('-created_date', 1000),
+        VendorProfile.list('-created_date', 1000),
+        LeadUnlock.list('-unlocked_at', 1000),
+        VendorLeadPack.list('-created_date', 1000),
+        Transaction.filter({ type: 'ad_fee' }, '-created_date', 1000)
       ]);
 
       setLeads(allLeads);
@@ -229,7 +230,7 @@ export default function LeadManagement() {
 
   const handleSendUpgradeIncentive = async (vendor) => {
     try {
-      await base44.entities.Notification.create({
+      await Notification.create({
         user_id: vendor.user_id,
         title: "🚀 Opportunités Manquées",
         message: `Vous avez manqué ${vendor.missed_leads_count} demandes ce mois. Passez à Premium pour ne plus rater d'opportunités !`,
@@ -707,3 +708,4 @@ export default function LeadManagement() {
     </div>
   );
 }
+

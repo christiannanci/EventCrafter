@@ -1,6 +1,7 @@
+﻿import { Service, VendorProfile, ClientProfile, Booking, Event, Conversation, Message, Review, Notification, Membership, Invoice, Region, Departement, Ville, Quartier, Fonction, PlatformFeedback, Contract, Dispute, Lead, Transaction, Payout, Refund, AppUser, Country, ServiceType } from '@/api/entities';
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { base44 } from "@/api/base44Client";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -34,7 +35,7 @@ export default function PostRequest() {
         setUser(currentUser);
         
         // Charger tous les ServiceTypes
-        const types = await base44.entities.ServiceType.list();
+        const types = await ServiceType.list();
         setServiceTypes(types);
       } catch (e) {
         setUser(null);
@@ -53,7 +54,7 @@ export default function PostRequest() {
 
     setLoading(true);
     try {
-      await base44.entities.Lead.create({
+      await Lead.create({
         client_id: user.id,
         client_name: user.first_name || user.email,
         event_type: data.event_type,
@@ -67,9 +68,9 @@ export default function PostRequest() {
 
       // Notifier les fournisseurs correspondants
       const [allServices, allVendorProfiles, allMemberships] = await Promise.all([
-        base44.entities.Service.list(),
-        base44.entities.VendorProfile.list(),
-        base44.entities.Membership.list()
+        Service.list(),
+        VendorProfile.list(),
+        Membership.list()
       ]);
 
       // Filtrer les services qui correspondent à la catégorie
@@ -108,7 +109,7 @@ export default function PostRequest() {
         startOfMonth.setDate(1);
         startOfMonth.setHours(0, 0, 0, 0);
 
-        const existingNotifications = await base44.entities.Notification.filter({
+        const existingNotifications = await Notification.filter({
           user_id: vendorId,
           type: 'post_request'
         });
@@ -126,7 +127,7 @@ export default function PostRequest() {
         }
 
         if (canNotify) {
-          await base44.entities.Notification.create({
+          await Notification.create({
             user_id: vendorId,
             title: `Nouvelle demande: ${data.event_type}`,
             message: `Un client recherche ${data.service_category} pour un événement le ${date ? format(date, 'dd/MM/yyyy') : 'date TBD'}. Localisation: ${data.location}`,
@@ -317,3 +318,4 @@ export default function PostRequest() {
     </div>
   );
 }
+

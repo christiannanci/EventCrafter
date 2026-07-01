@@ -1,5 +1,6 @@
+﻿import { Service, VendorProfile, ClientProfile, Booking, Event, Conversation, Message, Review, Notification, Membership, Invoice, Region, Departement, Ville, Quartier, Fonction, PlatformFeedback, Contract, Dispute, Lead, Transaction, Payout, Refund, AppUser, Country, ServiceType } from '@/api/entities';
 import React, { useState } from 'react';
-import { base44 } from '@/api/base44Client';
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -49,13 +50,13 @@ export default function DisputeManagement() {
   // Charger les disputes
   const { data: disputes = [] } = useQuery({
     queryKey: ['admin-disputes'],
-    queryFn: () => base44.entities.Dispute.list('-created_date', 500)
+    queryFn: () => Dispute.list('-created_date', 500)
   });
 
   const { data: bookings = {} } = useQuery({
     queryKey: ['admin-bookings-map'],
     queryFn: async () => {
-      const allBookings = await base44.entities.Booking.list('-created_date', 1000);
+      const allBookings = await Booking.list('-created_date', 1000);
       const map = {};
       allBookings.forEach(b => map[b.id] = b);
       return map;
@@ -65,7 +66,7 @@ export default function DisputeManagement() {
   const { data: contracts = {} } = useQuery({
     queryKey: ['admin-contracts-map'],
     queryFn: async () => {
-      const allContracts = await base44.entities.Contract.list('-created_date', 1000);
+      const allContracts = await Contract.list('-created_date', 1000);
       const map = {};
       allContracts.forEach(c => map[c.id] = c);
       return map;
@@ -75,7 +76,7 @@ export default function DisputeManagement() {
   const { data: vendors = {} } = useQuery({
     queryKey: ['admin-vendors-map'],
     queryFn: async () => {
-      const allVendors = await base44.entities.VendorProfile.list('-created_date', 500);
+      const allVendors = await VendorProfile.list('-created_date', 500);
       const map = {};
       allVendors.forEach(v => map[v.user_id] = v);
       return map;
@@ -85,7 +86,7 @@ export default function DisputeManagement() {
   const { data: users = {} } = useQuery({
     queryKey: ['admin-users-map'],
     queryFn: async () => {
-      const allUsers = await base44.entities.User.list();
+      const allUsers = await User.list();
       const map = {};
       allUsers.forEach(u => map[u.id] = u);
       return map;
@@ -94,7 +95,7 @@ export default function DisputeManagement() {
 
   const contactPartyMutation = useMutation({
     mutationFn: async ({ userId, message }) => {
-      await base44.entities.Notification.create({
+      await Notification.create({
         user_id: userId,
         title: '⚖️ Message de l\'Administration',
         message: message,
@@ -115,9 +116,9 @@ export default function DisputeManagement() {
       const contract = contracts[dispute.contract_id];
       
       // Récupérer les messages de médiation
-      const conversations = await base44.entities.Conversation.filter({ booking_id: booking.id });
+      const conversations = await Conversation.filter({ booking_id: booking.id });
       const messages = conversations.length > 0 
-        ? await base44.entities.Message.filter({ conversation_id: conversations[0].id })
+        ? await Message.filter({ conversation_id: conversations[0].id })
         : [];
 
       // Générer le PDF via l'API
@@ -161,7 +162,7 @@ export default function DisputeManagement() {
       const vendorLostDispute = action === 'refund' || (action === 'both' && resolutionType === 'sanction');
       
       // Mettre à jour le litige
-      await base44.entities.Dispute.update(disputeId, {
+      await Dispute.update(disputeId, {
         is_resolved: true,
         is_closed: true,
         closed_date: new Date().toISOString(),
@@ -172,7 +173,7 @@ export default function DisputeManagement() {
 
       // CONSÉQUENCES SUR LE PRESTATAIRE
       if (vendorLostDispute && booking?.planner_id) {
-        const vendorProfiles = await base44.entities.VendorProfile.filter({ user_id: booking.planner_id });
+        const vendorProfiles = await VendorProfile.filter({ user_id: booking.planner_id });
         const vendorProfile = vendorProfiles[0];
 
         if (vendorProfile) {
@@ -180,17 +181,17 @@ export default function DisputeManagement() {
           const newDisputesLost = currentDisputesLost + 1;
 
           // 1. Pénalité sur le Score de Fiabilité (baisse de 0.5 points)
-          const allServices = await base44.entities.Service.filter({ planner_id: booking.planner_id });
+          const allServices = await Service.filter({ planner_id: booking.planner_id });
           for (const service of allServices) {
             const currentRating = service.rating || 5.0;
             const penalizedRating = Math.max(1.0, currentRating - 0.5);
-            await base44.entities.Service.update(service.id, {
+            await Service.update(service.id, {
               rating: penalizedRating
             });
           }
 
           // 2. Suspension de tous les Boosts actifs
-          await base44.entities.VendorProfile.update(vendorProfile.id, {
+          await VendorProfile.update(vendorProfile.id, {
             smart_match_boost_active: false,
             disputes_lost_count: newDisputesLost,
             account_suspended: newDisputesLost >= 3
@@ -198,9 +199,9 @@ export default function DisputeManagement() {
 
           // 3. Red Flag Admin après 3 litiges perdus
           if (newDisputesLost >= 3) {
-            const allAdmins = await base44.entities.User.filter({ role: 'admin' });
+            const allAdmins = await User.filter({ role: 'admin' });
             for (const admin of allAdmins) {
-              await base44.entities.Notification.create({
+              await Notification.create({
                 user_id: admin.id,
                 title: '🚨 RED FLAG - Bannissement Requis',
                 message: `Le prestataire "${vendorProfile.business_name}" a perdu ${newDisputesLost} litiges. Action de bannissement recommandée.`,
@@ -212,7 +213,7 @@ export default function DisputeManagement() {
           }
 
           // Notifier le prestataire des conséquences
-          await base44.entities.Notification.create({
+          await Notification.create({
             user_id: booking.planner_id,
             title: '⚠️ Litige Perdu - Conséquences',
             message: newDisputesLost >= 3 
@@ -228,7 +229,7 @@ export default function DisputeManagement() {
       // Traiter les actions financières
       if (action === 'refund' || action === 'both') {
         // Créer un remboursement
-        await base44.entities.ClientRefund.create({
+        await ClientRefund.create({
           client_id: booking.created_by,
           booking_id: booking.id,
           amount: parseFloat(amount) || booking.total_amount,
@@ -237,10 +238,10 @@ export default function DisputeManagement() {
         });
 
         // Notifier le client
-        const allUsers = await base44.entities.User.list();
+        const allUsers = await User.list();
         const clientUser = allUsers.find(u => u.email === booking.created_by);
         if (clientUser) {
-          await base44.entities.Notification.create({
+          await Notification.create({
             user_id: clientUser.id,
             title: '✅ Litige Résolu - Remboursement',
             message: `Votre litige a été résolu. Un remboursement de ${parseFloat(amount) || booking.total_amount} FCFA sera traité.`,
@@ -253,18 +254,18 @@ export default function DisputeManagement() {
 
       if (action === 'payment' || action === 'both') {
         // Libérer le paiement au prestataire
-        const transactions = await base44.entities.Transaction.filter({ booking_id: booking.id });
+        const transactions = await Transaction.filter({ booking_id: booking.id });
         const escrowTx = transactions.find(t => t.status === 'escrow_held');
         
         if (escrowTx) {
-          await base44.entities.Transaction.update(escrowTx.id, {
+          await Transaction.update(escrowTx.id, {
             status: 'released',
             description: escrowTx.description + ` (Litige résolu - Admin)`
           });
         }
 
         // Notifier le vendeur
-        await base44.entities.Notification.create({
+        await Notification.create({
           user_id: booking.planner_id,
           title: '✅ Litige Résolu - Paiement Libéré',
           message: `Le litige a été résolu en votre faveur. Les fonds sont libérés.`,
@@ -284,16 +285,16 @@ export default function DisputeManagement() {
         newStatus = 'completed'; // Sanction appliquée
       }
       
-      await base44.entities.Booking.update(booking.id, {
+      await Booking.update(booking.id, {
         status: newStatus
       });
 
       // Débloquer les paiements si résolution amiable
       if (resolutionType === 'amicable') {
-        const transactions = await base44.entities.Transaction.filter({ booking_id: booking.id });
+        const transactions = await Transaction.filter({ booking_id: booking.id });
         for (const tx of transactions) {
           if (tx.status === 'blocked') {
-            await base44.entities.Transaction.update(tx.id, {
+            await Transaction.update(tx.id, {
               status: 'escrow_held'
             });
           }
@@ -321,13 +322,13 @@ export default function DisputeManagement() {
       const clientId = clientUser?.id;
       let convId = null;
       if (vendorId && clientId) {
-        const allConvs = await base44.entities.Conversation.list('-created_date', 100);
+        const allConvs = await Conversation.list('-created_date', 100);
         const conv = allConvs.find(c => c.participants?.includes(vendorId) && c.participants?.includes(clientId));
         if (conv) convId = conv.id;
       }
       setMediationConvId(convId);
       if (!convId) { setMediationMessages([]); return; }
-      const msgs = await base44.entities.Message.filter({ conversation_id: convId });
+      const msgs = await Message.filter({ conversation_id: convId });
       msgs.sort((a, b) => new Date(a.created_date) - new Date(b.created_date));
       setMediationMessages(msgs.slice(-50));
     } catch(e) { console.error(e); }
@@ -342,7 +343,7 @@ export default function DisputeManagement() {
       if (!convId && booking) {
         const clientUser = Object.values(users).find(u => u.email === booking.created_by);
         if (clientUser && booking.planner_id) {
-          const newConv = await base44.entities.Conversation.create({
+          const newConv = await Conversation.create({
             participants: [booking.planner_id, clientUser.id],
             last_message: mediationMessage,
             last_message_at: new Date().toISOString()
@@ -352,13 +353,13 @@ export default function DisputeManagement() {
         }
       }
       if (!convId) { toast({ title: 'Erreur', description: 'Conversation introuvable', variant: 'destructive' }); return; }
-      await base44.entities.Message.create({
+      await Message.create({
         conversation_id: convId,
         sender_id: currentUser?.id || 'admin',
         content: `[⚖️ MÉDIATION ADMIN] ${mediationMessage}`,
         read_status: 'unread'
       });
-      await base44.entities.Conversation.update(convId, { last_message: mediationMessage, last_message_at: new Date().toISOString() });
+      await Conversation.update(convId, { last_message: mediationMessage, last_message_at: new Date().toISOString() });
       toast({ title: 'Message envoyé', description: 'Les parties ont été notifiées' });
       setMediationMessage('');
       loadMediationMessages(selectedDispute);
@@ -902,3 +903,4 @@ export default function DisputeManagement() {
     </div>
   );
 }
+

@@ -1,10 +1,11 @@
+﻿import { Service, VendorProfile, ClientProfile, Booking, Event, Conversation, Message, Review, Notification, Membership, Invoice, Region, Departement, Ville, Quartier, Fonction, PlatformFeedback, Contract, Dispute, Lead, Transaction, Payout, Refund, AppUser, Country, ServiceType } from '@/api/entities';
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { base44 } from "@/api/base44Client";
+
 import { CreditCard, Smartphone, CheckCircle2, Loader2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { NotificationService } from '@/components/NotificationService';
@@ -32,7 +33,7 @@ export default function PaymentProcessor({ booking, contract, open, onOpenChange
       const amount = contract.contract_amount || booking.total_amount || 0;
       
       // Créer la transaction
-      const transaction = await base44.entities.Transaction.create({
+      const transaction = await Transaction.create({
         booking_id: booking.id,
         user_id: booking.created_by,
         amount: amount,
@@ -46,18 +47,18 @@ export default function PaymentProcessor({ booking, contract, open, onOpenChange
       });
 
       // Mettre à jour le statut du booking
-      await base44.entities.Booking.update(booking.id, {
+      await Booking.update(booking.id, {
         status: 'in_progress',
         payment_status: 'deposit_paid',
         paid_amount: amount
       });
 
       // Obtenir les informations du vendeur
-      const vendorProfiles = await base44.entities.VendorProfile.filter({ user_id: booking.planner_id });
+      const vendorProfiles = await VendorProfile.filter({ user_id: booking.planner_id });
       const vendorProfile = vendorProfiles[0];
 
       // Obtenir les informations du client
-      const allUsers = await base44.entities.User.list();
+      const allUsers = await User.list();
       const clientUser = allUsers.find(u => u.email === booking.created_by);
 
       // Notification au VENDEUR
@@ -71,7 +72,7 @@ export default function PaymentProcessor({ booking, contract, open, onOpenChange
 
       // Notification au CLIENT
       if (clientUser) {
-        await base44.entities.Notification.create({
+        await Notification.create({
           user_id: clientUser.id,
           title: "✅ Paiement Confirmé !",
           message: `Votre événement est sécurisé ! Paiement de ${amount.toLocaleString()} FCFA confirmé. Le prestataire commence la préparation.`,
@@ -212,3 +213,4 @@ export default function PaymentProcessor({ booking, contract, open, onOpenChange
     </Dialog>
   );
 }
+

@@ -1,5 +1,6 @@
+﻿import { Service, VendorProfile, ClientProfile, Booking, Event, Conversation, Message, Review, Notification, Membership, Invoice, Region, Departement, Ville, Quartier, Fonction, PlatformFeedback, Contract, Dispute, Lead, Transaction, Payout, Refund, AppUser, Country, ServiceType } from '@/api/entities';
 import React, { useState, useEffect } from 'react';
-import { base44 } from "@/api/base44Client";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -24,7 +25,7 @@ export default function BudgetTool() {
         setUser(currentUser);
         
         // Load user's events
-        const allEvents = await base44.entities.Event.list();
+        const allEvents = await Event.list();
         const myEvents = allEvents.filter(e => e.client_id === currentUser.id);
         setEvents(myEvents);
         
@@ -48,7 +49,7 @@ export default function BudgetTool() {
         setItems([]);
         return;
       }
-      const data = await base44.entities.BudgetItem.list();
+      const data = await BudgetItem.list();
       const eventItems = data.filter(item => item.event_id === selectedEvent.id);
       setItems(eventItems);
       
@@ -69,7 +70,7 @@ export default function BudgetTool() {
     if (!newItem.name || !newItem.estimated_cost || !selectedEvent) return;
     
     try {
-      const created = await base44.entities.BudgetItem.create({
+      const created = await BudgetItem.create({
         ...newItem,
         event_id: selectedEvent.id,
         estimated_cost: parseFloat(newItem.estimated_cost),
@@ -84,7 +85,7 @@ export default function BudgetTool() {
   };
 
   const deleteItem = async (id) => {
-    await base44.entities.BudgetItem.delete(id);
+    await BudgetItem.delete(id);
     setItems(items.filter(i => i.id !== id));
   };
 
@@ -98,7 +99,7 @@ export default function BudgetTool() {
     // Debounce save in real app, here we just save
     const item = items.find(i => i.id === id);
     if (item) {
-       await base44.entities.BudgetItem.update(id, { [field]: parseFloat(value) || 0 });
+       await BudgetItem.update(id, { [field]: parseFloat(value) || 0 });
     }
   };
 
@@ -299,3 +300,4 @@ export default function BudgetTool() {
     </div>
   );
 }
+

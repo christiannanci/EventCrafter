@@ -1,5 +1,6 @@
+﻿import { Service, VendorProfile, ClientProfile, Booking, Event, Conversation, Message, Review, Notification, Membership, Invoice, Region, Departement, Ville, Quartier, Fonction, PlatformFeedback, Contract, Dispute, Lead, Transaction, Payout, Refund, AppUser, Country, ServiceType } from '@/api/entities';
 import React, { useState, useEffect } from 'react';
-import { base44 } from "@/api/base44Client";
+
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -21,7 +22,7 @@ export default function RankingDashboard() {
   const loadRankingData = async () => {
     setLoading(true);
     try {
-      const allServices = await base44.entities.Service.list('-created_date', 500);
+      const allServices = await Service.list('-created_date', 500);
       const ranked = await applyRankingSystem(allServices, searchQuery);
       const formatted = formatRankingDataForAdmin(ranked);
       const topServices = getTopRatedServices(ranked);
@@ -274,3 +275,4 @@ export default function RankingDashboard() {
     </div>
   );
 }
+

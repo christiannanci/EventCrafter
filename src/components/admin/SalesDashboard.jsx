@@ -1,5 +1,6 @@
+﻿import { Service, VendorProfile, ClientProfile, Booking, Event, Conversation, Message, Review, Notification, Membership, Invoice, Region, Departement, Ville, Quartier, Fonction, PlatformFeedback, Contract, Dispute, Lead, Transaction, Payout, Refund, AppUser, Country, ServiceType } from '@/api/entities';
 import React, { useState, useEffect } from 'react';
-import { base44 } from "@/api/base44Client";
+
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { BarChart3, TrendingUp, Users, DollarSign } from "lucide-react";
 
@@ -14,8 +15,8 @@ export default function SalesDashboard() {
     useEffect(() => {
         const loadStats = async () => {
             // In a real app, these would be aggregated queries
-            const bookings = await base44.entities.Booking.list();
-            const vendors = await base44.entities.VendorProfile.list();
+            const bookings = await Booking.list();
+            const vendors = await VendorProfile.list();
             
             const volume = bookings.reduce((acc, b) => acc + (b.total_amount || 0), 0);
             
@@ -66,3 +67,4 @@ export default function SalesDashboard() {
         </div>
     );
 }
+

@@ -1,3 +1,4 @@
+﻿import { Service, VendorProfile, ClientProfile, Booking, Event, Conversation, Message, Review, Notification, Membership, Invoice, Region, Departement, Ville, Quartier, Fonction, PlatformFeedback, Contract, Dispute, Lead, Transaction, Payout, Refund, AppUser, Country, ServiceType } from '@/api/entities';
 import React, { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -5,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Award, Shield, Sparkles, Clock } from "lucide-react";
-import { base44 } from "@/api/base44Client";
+
 import { useToast } from "@/components/ui/use-toast";
 import { format, addMonths } from "date-fns";
 
@@ -61,7 +62,7 @@ export default function CulturalBadgeManager({ vendorProfile, onUpdate }) {
       }
 
       // Débiter le compte
-      await base44.entities.VendorProfile.update(vendorProfile.id, {
+      await VendorProfile.update(vendorProfile.id, {
         account_balance: (vendorProfile.account_balance || 0) - BADGE_PRICE_MONTHLY,
         cultural_badge_active: true,
         cultural_badge_type: selectedBadge,
@@ -69,7 +70,7 @@ export default function CulturalBadgeManager({ vendorProfile, onUpdate }) {
       });
 
       // Créer transaction
-      await base44.entities.Transaction.create({
+      await Transaction.create({
         user_id: vendorProfile.user_id,
         amount: -BADGE_PRICE_MONTHLY,
         type: 'subscription',
@@ -113,13 +114,13 @@ export default function CulturalBadgeManager({ vendorProfile, onUpdate }) {
         ? addMonths(new Date(), 1) 
         : addMonths(currentExpiry, 1);
 
-      await base44.entities.VendorProfile.update(vendorProfile.id, {
+      await VendorProfile.update(vendorProfile.id, {
         account_balance: (vendorProfile.account_balance || 0) - BADGE_PRICE_MONTHLY,
         cultural_badge_active: true,
         cultural_badge_expiry: newExpiry.toISOString()
       });
 
-      await base44.entities.Transaction.create({
+      await Transaction.create({
         user_id: vendorProfile.user_id,
         amount: -BADGE_PRICE_MONTHLY,
         type: 'subscription',
@@ -251,3 +252,4 @@ export default function CulturalBadgeManager({ vendorProfile, onUpdate }) {
     </Card>
   );
 }
+

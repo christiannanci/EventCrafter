@@ -1,5 +1,6 @@
+﻿import { Service, VendorProfile, ClientProfile, Booking, Event, Conversation, Message, Review, Notification, Membership, Invoice, Region, Departement, Ville, Quartier, Fonction, PlatformFeedback, Contract, Dispute, Lead, Transaction, Payout, Refund, AppUser, Country, ServiceType } from '@/api/entities';
 import React, { useState, useEffect } from 'react';
-import { base44 } from "@/api/base44Client";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -25,14 +26,14 @@ export default function PlatformFeedbackPrompt({ user, userRole }) {
 
       try {
         // Vérifier si l'utilisateur a déjà donné un feedback
-        const existingFeedback = await base44.entities.PlatformFeedback.filter({ user_id: user.id });
+        const existingFeedback = await PlatformFeedback.filter({ user_id: user.id });
         if (existingFeedback.length > 0) {
           setHasGivenFeedback(true);
           return;
         }
 
         // Compter les bookings complétés
-        const allBookings = await base44.entities.Booking.list();
+        const allBookings = await Booking.list();
         const userBookings = allBookings.filter(b => 
           (userRole === 'client' ? b.created_by === user.id : b.planner_id === user.id) &&
           b.status === 'completed'
@@ -65,7 +66,7 @@ export default function PlatformFeedbackPrompt({ user, userRole }) {
     try {
       setSubmitting(true);
 
-      await base44.entities.PlatformFeedback.create({
+      await PlatformFeedback.create({
         user_id: user.id,
         user_role: userRole,
         feedback_type: "satisfaction",
@@ -235,3 +236,4 @@ export default function PlatformFeedbackPrompt({ user, userRole }) {
     </>
   );
 }
+

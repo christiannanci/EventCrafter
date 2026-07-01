@@ -1,5 +1,6 @@
+﻿import { Service, VendorProfile, ClientProfile, Booking, Event, Conversation, Message, Review, Notification, Membership, Invoice, Region, Departement, Ville, Quartier, Fonction, PlatformFeedback, Contract, Dispute, Lead, Transaction, Payout, Refund, AppUser, Country, ServiceType } from '@/api/entities';
 import React, { useState, useEffect } from 'react';
-import { base44 } from "@/api/base44Client";
+
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -33,8 +34,8 @@ export default function AvailabilityManager({ user }) {
         setLoading(true);
         try {
             const [fetchedSlots, fetchedBookings] = await Promise.all([
-                base44.entities.AvailabilitySlot.filter({ planner_id: user.id }),
-                base44.entities.Booking.filter({ planner_id: user.id })
+                AvailabilitySlot.filter({ planner_id: user.id }),
+                Booking.filter({ planner_id: user.id })
             ]);
             setSlots(fetchedSlots);
             setBookings(fetchedBookings);
@@ -54,7 +55,7 @@ export default function AvailabilityManager({ user }) {
             
             const end = addHours(start, parseFloat(duration));
 
-            await base44.entities.AvailabilitySlot.create({
+            await AvailabilitySlot.create({
                 planner_id: user.id,
                 start_time: start.toISOString(),
                 end_time: end.toISOString(),
@@ -72,7 +73,7 @@ export default function AvailabilityManager({ user }) {
 
     const handleDeleteSlot = async (id) => {
         if(confirm("Delete this slot?")) {
-            await base44.entities.AvailabilitySlot.delete(id);
+            await AvailabilitySlot.delete(id);
             fetchData();
         }
     };
@@ -232,3 +233,4 @@ export default function AvailabilityManager({ user }) {
         </div>
     );
 }
+

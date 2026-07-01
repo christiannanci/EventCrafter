@@ -1,5 +1,6 @@
+﻿import { Service, VendorProfile, ClientProfile, Booking, Event, Conversation, Message, Review, Notification, Membership, Invoice, Region, Departement, Ville, Quartier, Fonction, PlatformFeedback, Contract, Dispute, Lead, Transaction, Payout, Refund, AppUser, Country, ServiceType } from '@/api/entities';
 import React, { useState, useEffect } from 'react';
-import { base44 } from "@/api/base44Client";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -41,7 +42,7 @@ export default function GuestManager() {
         setUser(currentUser);
         
         // Fetch user's events
-        const allEvents = await base44.entities.Event.list();
+        const allEvents = await Event.list();
         const myEvents = allEvents.filter(e => e.client_id === currentUser.id);
         setEvents(myEvents);
         
@@ -65,7 +66,7 @@ export default function GuestManager() {
         setGuests([]);
         return;
       }
-      const data = await base44.entities.Guest.list();
+      const data = await Guest.list();
       const eventGuests = data.filter(g => g.event_id === selectedEvent.id);
       setGuests(eventGuests);
     };
@@ -75,7 +76,7 @@ export default function GuestManager() {
   const handleCreateEvent = async () => {
     if (!newEvent.title || !newEvent.start_date) return;
     try {
-      const created = await base44.entities.Event.create({
+      const created = await Event.create({
         ...newEvent,
         client_id: user.id,
         status: "planning",
@@ -100,7 +101,7 @@ export default function GuestManager() {
   const handleAddGuest = async () => {
     if (!newGuest.full_name || !selectedEvent) return;
     try {
-      const created = await base44.entities.Guest.create({
+      const created = await Guest.create({
         ...newGuest,
         event_id: selectedEvent.id
       });
@@ -113,12 +114,12 @@ export default function GuestManager() {
   };
 
   const deleteGuest = async (id) => {
-    await base44.entities.Guest.delete(id);
+    await Guest.delete(id);
     setGuests(guests.filter(g => g.id !== id));
   };
 
   const updateGuest = async (id, data) => {
-    await base44.entities.Guest.update(id, data);
+    await Guest.update(id, data);
     setGuests(guests.map(g => g.id === id ? { ...g, ...data } : g));
   };
 
@@ -376,3 +377,4 @@ export default function GuestManager() {
     </div>
   );
 }
+

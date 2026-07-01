@@ -1,9 +1,10 @@
+﻿import { Service, VendorProfile, ClientProfile, Booking, Event, Conversation, Message, Review, Notification, Membership, Invoice, Region, Departement, Ville, Quartier, Fonction, PlatformFeedback, Contract, Dispute, Lead, Transaction, Payout, Refund, AppUser, Country, ServiceType } from '@/api/entities';
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useLanguage } from '@/components/LanguageContext';
 
-import { base44 } from "@/api/base44Client";
+
 
 export default function CategoryFilter({ selected, onSelect }) {
   const { t } = useLanguage();
@@ -14,7 +15,7 @@ export default function CategoryFilter({ selected, onSelect }) {
   React.useEffect(() => {
     const fetchTypes = async () => {
       try {
-        const types = await base44.entities.ServiceType.list();
+        const types = await ServiceType.list();
         const activeTypes = types.filter(t => !t.status || t.status === 'active');
         
         const mapped = activeTypes.map(type => ({
@@ -53,3 +54,4 @@ export default function CategoryFilter({ selected, onSelect }) {
     </div>
   );
 }
+

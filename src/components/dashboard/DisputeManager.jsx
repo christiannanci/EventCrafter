@@ -1,4 +1,5 @@
-﻿import React, { useState, useEffect } from 'react';
+﻿import { Service, VendorProfile, ClientProfile, Booking, Event, Conversation, Message, Review, Notification, Membership, Invoice, Region, Departement, Ville, Quartier, Fonction, PlatformFeedback, Contract, Dispute, Lead, Transaction, Payout, Refund, AppUser, Country, ServiceType } from '@/api/entities';
+import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -6,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { base44 } from "@/api/base44Client";
+
 import { Loader2, FileText, Upload, ShieldAlert, Gavel, CheckCircle2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 
@@ -25,11 +26,11 @@ export default function DisputeManager({ booking, currentUser, onClose }) {
     useEffect(() => {
         const init = async () => {
             // Fetch Contract
-            const contracts = await base44.entities.Contract.filter({ booking_id: booking.id });
+            const contracts = await Contract.filter({ booking_id: booking.id });
             if (contracts.length > 0) setContract(contracts[0]);
 
             // Fetch Existing Dispute
-            const disputes = await base44.entities.Dispute.filter({ booking_id: booking.id });
+            const disputes = await Dispute.filter({ booking_id: booking.id });
             if (disputes.length > 0) {
                 setDispute(disputes[0]);
                 setConclusion(disputes[0].negotiation_conclusion || "");
@@ -89,7 +90,7 @@ export default function DisputeManager({ booking, currentUser, onClose }) {
                 
                 // Let's create the Payout Request directly here to shortcut
                 const commission = booking.total_amount * 0.05;
-                await base44.entities.ProviderPayout.create({
+                await ProviderPayout.create({
                     payment_code: `PAY-DISP-${Date.now()}`,
                     invoice_id: "FROM-DISPUTE", // Placeholder
                     reception_id: dispute.reception_id || "FROM-DISPUTE",
@@ -101,7 +102,7 @@ export default function DisputeManager({ booking, currentUser, onClose }) {
                     transaction_status: "pending_approval"
                 });
 
-                await base44.entities.Booking.update(booking.id, { status: "completed" });
+                await Booking.update(booking.id, { status: "completed" });
                 toast({ title: "Dispute Resolved", description: "Payment authorized to provider." });
 
             } else if (actionType === "resolve_refund") {
@@ -112,7 +113,7 @@ export default function DisputeManager({ booking, currentUser, onClose }) {
                 updates.closed_date = new Date().toISOString();
 
                 // Logic for Refund (Unlock Escrow to Client)
-                const txs = await base44.entities.Transaction.list();
+                const txs = await Transaction.list();
                 const tx = txs.find(t => t.reference_id === booking.id && t.status === 'escrow_held');
                 let transactionRef = tx ? tx.id : "";
                 
@@ -124,7 +125,7 @@ export default function DisputeManager({ booking, currentUser, onClose }) {
                 let clientId = "unknown";
                 if(tx) clientId = tx.user_id; // Transaction usually created by client paying
 
-                await base44.entities.ClientRefund.create({
+                await ClientRefund.create({
                     refund_code: `RFD-${new Date().getFullYear()}-${Date.now().toString().slice(-6)}`,
                     booking_id: booking.id,
                     dispute_id: dispute.id,
@@ -150,14 +151,14 @@ export default function DisputeManager({ booking, currentUser, onClose }) {
                     console.error("Failed to email admin", err);
                 }
 
-                await base44.entities.Booking.update(booking.id, { status: "cancelled" });
+                await Booking.update(booking.id, { status: "cancelled" });
                 toast({ title: "Dispute Resolved", description: "Refund request sent to Admin for approval." });
             } else {
                 // Just update negotiation info
                 toast({ title: "Updated", description: "Negotiation details saved." });
             }
 
-            await base44.entities.Dispute.update(dispute.id, updates);
+            await Dispute.update(dispute.id, updates);
             setDispute({...dispute, ...updates});
             
             if (updates.is_closed) {
@@ -281,3 +282,5 @@ export default function DisputeManager({ booking, currentUser, onClose }) {
         </Dialog>
     );
 }
+
+

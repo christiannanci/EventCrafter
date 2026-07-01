@@ -1,5 +1,6 @@
+﻿import { Service, VendorProfile, ClientProfile, Booking, Event, Conversation, Message, Review, Notification, Membership, Invoice, Region, Departement, Ville, Quartier, Fonction, PlatformFeedback, Contract, Dispute, Lead, Transaction, Payout, Refund, AppUser, Country, ServiceType } from '@/api/entities';
 import React, { useState, useEffect } from 'react';
-import { base44 } from "@/api/base44Client";
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -15,8 +16,8 @@ export default function LegalDashboard() {
     useEffect(() => {
         const loadData = async () => {
             const [c, d] = await Promise.all([
-                base44.entities.Contract.list(),
-                base44.entities.Dispute.list()
+                Contract.list(),
+                Dispute.list()
             ]);
             setContracts(c);
             setDisputes(d);
@@ -98,3 +99,4 @@ export default function LegalDashboard() {
         </div>
     );
 }
+

@@ -1,10 +1,11 @@
+﻿import { Service, VendorProfile, ClientProfile, Booking, Event, Conversation, Message, Review, Notification, Membership, Invoice, Region, Departement, Ville, Quartier, Fonction, PlatformFeedback, Contract, Dispute, Lead, Transaction, Payout, Refund, AppUser, Country, ServiceType } from '@/api/entities';
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { base44 } from "@/api/base44Client";
+
 import { FileSignature, CheckCircle2, ArrowRight, ArrowLeft, Edit3, FileCheck, Download } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/components/ui/use-toast";
@@ -35,17 +36,17 @@ export default function ContractFlow({ booking, currentUser, open, onOpenChange,
 
     const loadPartyNames = async () => {
         try {
-            const vendorProfiles = await base44.entities.VendorProfile.filter({ user_id: booking.planner_id });
+            const vendorProfiles = await VendorProfile.filter({ user_id: booking.planner_id });
             if (vendorProfiles.length > 0) {
                 const name = vendorProfiles[0].business_name || 'Provider';
                 setProviderName(name);
                 setProviderSignatureName(name);
             }
 
-            const allUsers = await base44.entities.User.list();
+            const allUsers = await User.list();
             const clientUser = allUsers.find(u => u.email === booking.created_by);
             if (clientUser) {
-                const clientProfiles = await base44.entities.ClientProfile.filter({ user_id: clientUser.id });
+                const clientProfiles = await ClientProfile.filter({ user_id: clientUser.id });
                 if (clientProfiles.length > 0) {
                     const profile = clientProfiles[0];
                     const fullName = profile.first_name && profile.last_name 
@@ -72,7 +73,7 @@ export default function ContractFlow({ booking, currentUser, open, onOpenChange,
     const loadContract = async () => {
         setLoading(true);
         try {
-            const contracts = await base44.entities.Contract.filter({ booking_id: booking.id });
+            const contracts = await Contract.filter({ booking_id: booking.id });
             if (contracts.length > 0) {
                 const existing = contracts[0];
                 setContract(existing);
@@ -121,9 +122,9 @@ export default function ContractFlow({ booking, currentUser, open, onOpenChange,
         try {
             let savedContract;
             if (contract) {
-                savedContract = await base44.entities.Contract.update(contract.id, formData);
+                savedContract = await Contract.update(contract.id, formData);
             } else {
-                savedContract = await base44.entities.Contract.create(formData);
+                savedContract = await Contract.create(formData);
             }
             setContract(savedContract);
             setStep(2); // Aller à la révision
@@ -139,7 +140,7 @@ export default function ContractFlow({ booking, currentUser, open, onOpenChange,
     const handleSubmitForSignature = async () => {
         setLoading(true);
         try {
-            const updated = await base44.entities.Contract.update(contract.id, {
+            const updated = await Contract.update(contract.id, {
                 status: 'pending_signatures'
             });
             setContract(updated);
@@ -182,16 +183,16 @@ export default function ContractFlow({ booking, currentUser, open, onOpenChange,
                 updateData.signed_date = new Date().toISOString();
                 
                 // Changer statut booking vers "awaiting_payment"
-                await base44.entities.Booking.update(booking.id, {
+                await Booking.update(booking.id, {
                     status: 'awaiting_payment'
                 });
                 
                 // Générer et envoyer la facture automatiquement
                 try {
-                    const vendorProfiles = await base44.entities.VendorProfile.filter({ user_id: booking.planner_id });
-                    const allUsers = await base44.entities.User.list();
+                    const vendorProfiles = await VendorProfile.filter({ user_id: booking.planner_id });
+                    const allUsers = await User.list();
                     const clientUser = allUsers.find(u => u.email === booking.created_by);
-                    const clientProfiles = clientUser ? await base44.entities.ClientProfile.filter({ user_id: clientUser.id }) : [];
+                    const clientProfiles = clientUser ? await ClientProfile.filter({ user_id: clientUser.id }) : [];
                     
                     const { invoice } = await generateAndSendInvoice(
                         contract,
@@ -210,7 +211,7 @@ export default function ContractFlow({ booking, currentUser, open, onOpenChange,
                     });
                     
                     if (clientUser) {
-                        await base44.entities.Notification.create({
+                        await Notification.create({
                             user_id: clientUser.id,
                             title: "✅ Contrat Signé - Paiement Requis",
                             message: `Le contrat ${contract.contract_number} est finalisé. Veuillez procéder au paiement pour confirmer votre réservation.`,
@@ -234,7 +235,7 @@ export default function ContractFlow({ booking, currentUser, open, onOpenChange,
                 }
             }
 
-            const updated = await base44.entities.Contract.update(contract.id, updateData);
+            const updated = await Contract.update(contract.id, updateData);
             setContract(updated);
             
             if (!updateData.status) {
@@ -697,3 +698,4 @@ export default function ContractFlow({ booking, currentUser, open, onOpenChange,
         </Dialog>
     );
 }
+

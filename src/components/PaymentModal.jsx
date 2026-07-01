@@ -1,11 +1,12 @@
-﻿import React, { useState } from 'react';
+﻿import { Service, VendorProfile, ClientProfile, Booking, Event, Conversation, Message, Review, Notification, Membership, Invoice, Region, Departement, Ville, Quartier, Fonction, PlatformFeedback, Contract, Dispute, Lead, Transaction, Payout, Refund, AppUser, Country, ServiceType } from '@/api/entities';
+import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { base44 } from "@/api/base44Client";
+
 import { CreditCard, Loader2, CheckCircle2, Smartphone, Globe, ShieldCheck } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { paymentSchema, validateData } from '@/components/ValidationSchemas';
@@ -125,10 +126,10 @@ export default function PaymentModal({ booking, invoice, onPaymentComplete, labe
           
           console.log("Creating payment proof with data:", proofData);
           
-          await base44.entities.PaymentProof.create(proofData);
+          await PaymentProof.create(proofData);
 
           // Notify all admin users
-          const allUsers = await base44.entities.User.list();
+          const allUsers = await User.list();
           const adminUsers = allUsers.filter(u => u.role === 'admin');
           
           const notificationMessage = booking 
@@ -189,7 +190,7 @@ export default function PaymentModal({ booking, invoice, onPaymentComplete, labe
       await new Promise(resolve => setTimeout(resolve, 2000));
 
       // 1. Create Transaction Record (Escrow)
-      const transaction = await base44.entities.Transaction.create({
+      const transaction = await Transaction.create({
         user_id: currentUser.id,
         amount: amountToPay,
         type: 'booking_payment',
@@ -200,7 +201,7 @@ export default function PaymentModal({ booking, invoice, onPaymentComplete, labe
       });
 
       // 2. Generate Receipt
-      await base44.entities.Receipt.create({
+      await Receipt.create({
           receipt_number: `RCPT-${new Date().getFullYear()}-${Math.floor(Math.random() * 100000)}`,
           transaction_id: transaction.id,
           invoice_id: invoice ? invoice.id : null,
@@ -214,7 +215,7 @@ export default function PaymentModal({ booking, invoice, onPaymentComplete, labe
 
       // 3. Update Invoice Status
       if (invoice) {
-          await base44.entities.Invoice.update(invoice.id, { status: 'paid' });
+          await Invoice.update(invoice.id, { status: 'paid' });
       }
 
       // 4. Update Booking Status Logic
@@ -223,7 +224,7 @@ export default function PaymentModal({ booking, invoice, onPaymentComplete, labe
       // Start execution if it's a global payment (full) or a deposit (partial start)
       // Or if it's a legacy booking payment (no invoice = full payment implied)
       if (!invoice || invoice.type === 'global' || invoice.type === 'partial_deposit') {
-          await base44.entities.Booking.update(booking.id, {
+          await Booking.update(booking.id, {
               status: 'confirmed', // Confirmed means ready for execution/in progress
               payment_status: invoice && invoice.type === 'partial_deposit' ? 'partial' : 'paid',
               paid_amount: (booking.paid_amount || 0) + amountToPay
@@ -231,7 +232,7 @@ export default function PaymentModal({ booking, invoice, onPaymentComplete, labe
           shouldNotifyProviderToStart = true;
       } else {
            // Just update amount paid if it's a balance or other partial
-           await base44.entities.Booking.update(booking.id, {
+           await Booking.update(booking.id, {
               paid_amount: (booking.paid_amount || 0) + amountToPay,
               payment_status: 'paid' // Assuming balance pays it off (simplified)
           });
@@ -656,3 +657,5 @@ export default function PaymentModal({ booking, invoice, onPaymentComplete, labe
     </Dialog>
   );
 }
+
+

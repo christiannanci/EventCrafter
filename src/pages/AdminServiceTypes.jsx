@@ -1,5 +1,6 @@
+﻿import { Service, VendorProfile, ClientProfile, Booking, Event, Conversation, Message, Review, Notification, Membership, Invoice, Region, Departement, Ville, Quartier, Fonction, PlatformFeedback, Contract, Dispute, Lead, Transaction, Payout, Refund, AppUser, Country, ServiceType } from '@/api/entities';
 import React, { useState, useEffect } from 'react';
-import { base44 } from "@/api/base44Client";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -33,7 +34,7 @@ export default function AdminServiceTypes() {
         setLoading(true);
         try {
             // Fetch pending service types
-            const data = await base44.entities.ServiceType.list();
+            const data = await ServiceType.list();
             // Client side filter for simplicity or if backend filter is limited
             const pending = data.filter(item => item.status === 'pending');
             setRequests(pending);
@@ -47,7 +48,7 @@ export default function AdminServiceTypes() {
     const handleAction = async (id, action) => {
         try {
             const newStatus = action === 'approve' ? 'active' : 'rejected';
-            await base44.entities.ServiceType.update(id, { status: newStatus });
+            await ServiceType.update(id, { status: newStatus });
             
             toast({
                 title: action === 'approve' ? "Approved" : "Rejected",
@@ -128,3 +129,4 @@ export default function AdminServiceTypes() {
         </div>
     );
 }
+

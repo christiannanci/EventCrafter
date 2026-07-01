@@ -1,10 +1,11 @@
+﻿import { Service, VendorProfile, ClientProfile, Booking, Event, Conversation, Message, Review, Notification, Membership, Invoice, Region, Departement, Ville, Quartier, Fonction, PlatformFeedback, Contract, Dispute, Lead, Transaction, Payout, Refund, AppUser, Country, ServiceType } from '@/api/entities';
 /**
  * Système de Classement Intelligent avec Score de Réputation
  * RN2 & RN3: Hiérarchie corrigée : Gratuit < Premium < Gold
  * RN7: Rotation équitable des prestataires
  */
 
-import { base44 } from "@/api/base44Client";
+
 
 /**
  * Calcule le Score de Réputation
@@ -69,7 +70,7 @@ export const hasFeaturedBoost = (service) => {
  */
 export const loadRankingConfig = async () => {
   try {
-    const configs = await base44.entities.RankingConfig.filter({ config_key: 'default' });
+    const configs = await RankingConfig.filter({ config_key: 'default' });
     return configs[0] || {
       boost_weight: 50,
       rating_weight: 30,
@@ -252,8 +253,8 @@ export const applyRankingSystem = async (services, context = {}) => {
   try {
     const { searchQuery = '', searchFilters = {} } = context;
     
-    const vendorProfiles = await base44.entities.VendorProfile.list();
-    const conversations = await base44.entities.Conversation.list('-updated_date', 1000);
+    const vendorProfiles = await VendorProfile.list();
+    const conversations = await Conversation.list('-updated_date', 1000);
     const rankingConfig = await loadRankingConfig();
     
     const scoringContext = {
@@ -293,7 +294,7 @@ export const applyRankingSystem = async (services, context = {}) => {
       
       for (const service of topServices) {
         // Mise à jour asynchrone sans bloquer
-        base44.entities.Service.update(service.id, {
+        Service.update(service.id, {
           rotation_last_shown: now
         }).catch(err => console.warn('Rotation update failed:', err));
       }
@@ -351,3 +352,4 @@ export const formatRankingDataForAdmin = (rankedServices) => {
     created_date: service.created_date
   }));
 };
+

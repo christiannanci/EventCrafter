@@ -1,5 +1,6 @@
+﻿import { Service, VendorProfile, ClientProfile, Booking, Event, Conversation, Message, Review, Notification, Membership, Invoice, Region, Departement, Ville, Quartier, Fonction, PlatformFeedback, Contract, Dispute, Lead, Transaction, Payout, Refund, AppUser, Country, ServiceType } from '@/api/entities';
 import React, { createContext, useState, useEffect, useContext } from 'react';
-import { base44 } from "@/api/base44Client";
+
 
 const UserContext = createContext();
 
@@ -20,8 +21,8 @@ export function UserProvider({ children }) {
 
       if (currentUser) {
         const [vendorProfiles, clientProfiles] = await Promise.all([
-          base44.entities.VendorProfile.filter({ user_id: currentUser.id }),
-          base44.entities.ClientProfile.filter({ user_id: currentUser.id })
+          VendorProfile.filter({ user_id: currentUser.id }),
+          ClientProfile.filter({ user_id: currentUser.id })
         ]);
 
         setVendorProfile(vendorProfiles[0] || null);
@@ -46,8 +47,8 @@ export function UserProvider({ children }) {
     
     try {
       const [vendorProfiles, clientProfiles] = await Promise.all([
-        base44.entities.VendorProfile.filter({ user_id: user.id }),
-        base44.entities.ClientProfile.filter({ user_id: user.id })
+        VendorProfile.filter({ user_id: user.id }),
+        ClientProfile.filter({ user_id: user.id })
       ]);
 
       setVendorProfile(vendorProfiles[0] || null);
@@ -79,3 +80,4 @@ export function useUser() {
   }
   return context;
 }
+

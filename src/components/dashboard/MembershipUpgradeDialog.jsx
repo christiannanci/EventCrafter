@@ -1,3 +1,4 @@
+﻿import { Service, VendorProfile, ClientProfile, Booking, Event, Conversation, Message, Review, Notification, Membership, Invoice, Region, Departement, Ville, Quartier, Fonction, PlatformFeedback, Contract, Dispute, Lead, Transaction, Payout, Refund, AppUser, Country, ServiceType } from '@/api/entities';
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -7,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { createPageUrl } from '@/utils';
 
 import { useToast } from "@/components/ui/use-toast";
-import { base44 } from "@/api/base44Client";
+
 import { Crown, Check } from "lucide-react";
 
 export default function MembershipUpgradeDialog({ open, onOpenChange, currentUser, onSuccess }) {
@@ -27,7 +28,7 @@ export default function MembershipUpgradeDialog({ open, onOpenChange, currentUse
   }, [open]);
 
   const fetchPlans = async () => {
-    const membershipTypes = await base44.entities.MembershipType.filter({ status: 'active' });
+    const membershipTypes = await MembershipType.filter({ status: 'active' });
     
     // Ordre: Basic (free), Premium, Gold
     const sortedPlans = membershipTypes.sort((a, b) => {
@@ -51,7 +52,7 @@ export default function MembershipUpgradeDialog({ open, onOpenChange, currentUse
       
       // Créer le contrat
       const contractNumber = `CONT-MEMB-${Date.now()}`;
-      const contract = await base44.entities.Contract.create({
+      const contract = await Contract.create({
         contract_number: contractNumber,
         type: 'subscription',
         status: 'pending',
@@ -72,7 +73,7 @@ export default function MembershipUpgradeDialog({ open, onOpenChange, currentUse
         endDate.setFullYear(endDate.getFullYear() + 1);
       }
 
-      const membership = await base44.entities.Membership.create({
+      const membership = await Membership.create({
         user_id: currentUser.id,
         membership_type_code: plan.code,
         contract_id: contract.id,
@@ -89,7 +90,7 @@ export default function MembershipUpgradeDialog({ open, onOpenChange, currentUse
 
       // Créer la facture
       const invoiceNumber = `INV-MEMB-${Date.now()}`;
-      const invoice = await base44.entities.Invoice.create({
+      const invoice = await Invoice.create({
         invoice_number: invoiceNumber,
         membership_id: membership.id,
         contract_id: contract.id,
@@ -103,7 +104,7 @@ export default function MembershipUpgradeDialog({ open, onOpenChange, currentUse
       console.log('✅ Facture créée:', invoice.id);
 
       // Lier la facture à l'abonnement
-      await base44.entities.Membership.update(membership.id, {
+      await Membership.update(membership.id, {
         invoice_id: invoice.id
       });
 
@@ -183,3 +184,4 @@ export default function MembershipUpgradeDialog({ open, onOpenChange, currentUse
     </Dialog>
   );
 }
+

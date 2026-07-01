@@ -1,5 +1,6 @@
+﻿import { Service, VendorProfile, ClientProfile, Booking, Event, Conversation, Message, Review, Notification, Membership, Invoice, Region, Departement, Ville, Quartier, Fonction, PlatformFeedback, Contract, Dispute, Lead, Transaction, Payout, Refund, AppUser, Country, ServiceType } from '@/api/entities';
 import React, { useState, useEffect } from 'react';
-import { base44 } from "@/api/base44Client";
+
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -34,12 +35,12 @@ export default function NegotiationsSection({ vendorId }) {
     setLoading(true);
     try {
       // Charger toutes les négociations du vendor
-      const allNegotiations = await base44.entities.NegotiationLog.list();
+      const allNegotiations = await NegotiationLog.list();
       const vendorNegotiations = allNegotiations.filter(n => n.provider_id === vendorId);
       
       // Charger les bookings associés
       const bookingIds = [...new Set(vendorNegotiations.map(n => n.booking_id))];
-      const allBookings = await base44.entities.Booking.list();
+      const allBookings = await Booking.list();
       const relatedBookings = allBookings.filter(b => bookingIds.includes(b.id));
       
       setNegotiations(vendorNegotiations);
@@ -58,10 +59,10 @@ export default function NegotiationsSection({ vendorId }) {
 
   const updateNegotiationStatus = async (negotiationId, newStatus) => {
     try {
-      await base44.entities.NegotiationLog.update(negotiationId, { status: newStatus });
+      await NegotiationLog.update(negotiationId, { status: newStatus });
       
       if (newStatus === 'approuve') {
-        await base44.entities.NegotiationLog.update(negotiationId, { deal_concluded: true });
+        await NegotiationLog.update(negotiationId, { deal_concluded: true });
       }
       
       toast({
@@ -276,3 +277,4 @@ export default function NegotiationsSection({ vendorId }) {
     </div>
   );
 }
+

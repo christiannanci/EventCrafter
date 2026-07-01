@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { base44 } from "@/api/base44Client";
+﻿import React, { useState, useEffect } from 'react';
+
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -21,7 +21,7 @@ export default function UserManagement() {
         setLoading(true);
         try {
             // Fetch all users - typically paginated, but for now list all or top 50
-            const data = await base44.entities.User.list();
+            const data = await User.list();
             setUsers(data);
         } catch (error) {
             console.error("Failed to fetch users", error);

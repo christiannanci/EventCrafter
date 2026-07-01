@@ -1,5 +1,6 @@
+﻿import { Service, VendorProfile, ClientProfile, Booking, Event, Conversation, Message, Review, Notification, Membership, Invoice, Region, Departement, Ville, Quartier, Fonction, PlatformFeedback, Contract, Dispute, Lead, Transaction, Payout, Refund, AppUser, Country, ServiceType } from '@/api/entities';
 import { useState, useEffect } from 'react';
-import { base44 } from "@/api/base44Client";
+
 import { addMonths, startOfMonth, endOfMonth } from "date-fns";
 
 /**
@@ -20,7 +21,7 @@ const FEATURED_DURATION_HOURS = 48;
 export const checkPerformanceReward = async (vendorUserId) => {
   try {
     // Récupérer le profil vendor
-    const profiles = await base44.entities.VendorProfile.filter({ user_id: vendorUserId });
+    const profiles = await VendorProfile.filter({ user_id: vendorUserId });
     if (!profiles || profiles.length === 0) return null;
     
     const vendorProfile = profiles[0];
@@ -40,7 +41,7 @@ export const checkPerformanceReward = async (vendorUserId) => {
     
     // Compter les contrats conclus ce mois
     const monthEnd = endOfMonth(now);
-    const allBookings = await base44.entities.Booking.filter({ 
+    const allBookings = await Booking.filter({ 
       planner_id: vendorUserId,
       status: 'completed'
     });
@@ -65,7 +66,7 @@ export const checkPerformanceReward = async (vendorUserId) => {
     const creditAmount = (REWARD_CREDIT_MIN + REWARD_CREDIT_MAX) / 2;
     
     // 2. Featured pendant 48h sur UN de ses services (on prend le plus populaire)
-    const vendorServices = await base44.entities.Service.filter({ planner_id: vendorUserId });
+    const vendorServices = await Service.filter({ planner_id: vendorUserId });
     let featuredService = null;
     
     if (vendorServices && vendorServices.length > 0) {
@@ -75,21 +76,21 @@ export const checkPerformanceReward = async (vendorUserId) => {
       );
       
       // Activer le featured
-      await base44.entities.Service.update(featuredService.id, {
+      await Service.update(featuredService.id, {
         is_featured: true,
         featured_until: new Date(Date.now() + FEATURED_DURATION_HOURS * 60 * 60 * 1000).toISOString()
       });
     }
     
     // Mettre à jour le profil vendor
-    await base44.entities.VendorProfile.update(vendorProfile.id, {
+    await VendorProfile.update(vendorProfile.id, {
       reward_credits: (vendorProfile.reward_credits || 0) + creditAmount,
       last_performance_reward: now.toISOString(),
       contracts_this_month: thisMonthContracts.length
     });
     
     // Créer une transaction pour tracer le crédit
-    await base44.entities.Transaction.create({
+    await Transaction.create({
       user_id: vendorUserId,
       amount: creditAmount,
       type: 'commission',
@@ -98,7 +99,7 @@ export const checkPerformanceReward = async (vendorUserId) => {
     });
     
     // Notifier le vendor
-    await base44.entities.Notification.create({
+    await Notification.create({
       user_id: vendorUserId,
       title: "🎉 Récompense Performance Débloquée !",
       message: `Félicitations ! Vous avez conclu ${thisMonthContracts.length} contrats ce mois. Vous recevez +$${creditAmount} en crédit et votre service "${featuredService?.title || 'top'}" est mis en avant pendant 48h !`,
@@ -127,7 +128,7 @@ export const checkPerformanceReward = async (vendorUserId) => {
  */
 export const checkAllVendorsPerformance = async () => {
   try {
-    const allProfiles = await base44.entities.VendorProfile.list('-created_date', 1000);
+    const allProfiles = await VendorProfile.list('-created_date', 1000);
     
     const results = [];
     for (const profile of allProfiles) {
@@ -163,3 +164,4 @@ export const usePerformanceReward = (vendorUserId) => {
   
   return { rewardInfo, loading };
 };
+

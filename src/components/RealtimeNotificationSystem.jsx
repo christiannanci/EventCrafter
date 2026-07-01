@@ -1,9 +1,10 @@
-﻿/**
+﻿import { Service, VendorProfile, ClientProfile, Booking, Event, Conversation, Message, Review, Notification, Membership, Invoice, Region, Departement, Ville, Quartier, Fonction, PlatformFeedback, Contract, Dispute, Lead, Transaction, Payout, Refund, AppUser, Country, ServiceType } from '@/api/entities';
+/**
  * Système de Notifications Temps Réel
  * Utilise les subscriptions Base44 pour tous les appareils
  */
 
-import { base44 } from "@/api/base44Client";
+
 import { toast } from "sonner";
 
 class RealtimeNotificationSystem {
@@ -32,8 +33,8 @@ class RealtimeNotificationSystem {
         this.subscribeAdminNotifications();
       } else {
         // Vérifier si l'utilisateur est vendeur ou client
-        const vendorProfiles = await base44.entities.VendorProfile.filter({ user_id: userId });
-        const clientProfiles = await base44.entities.ClientProfile.filter({ user_id: userId });
+        const vendorProfiles = await VendorProfile.filter({ user_id: userId });
+        const clientProfiles = await ClientProfile.filter({ user_id: userId });
 
         if (vendorProfiles.length > 0) {
           this.subscribeVendorNotifications(userId);
@@ -55,7 +56,7 @@ class RealtimeNotificationSystem {
    * Notifications générales
    */
   subscribeToNotifications(userId) {
-    const unsubscribe = base44.entities.Notification.subscribe(async (event) => {
+    const unsubscribe = Notification.subscribe(async (event) => {
       if (event.type === 'create' && event.data.user_id === userId) {
         const notification = event.data;
         
@@ -161,12 +162,12 @@ class RealtimeNotificationSystem {
    * Messages en temps réel
    */
   subscribeToMessages(userId) {
-    const unsubscribe = base44.entities.Message.subscribe(async (event) => {
+    const unsubscribe = Message.subscribe(async (event) => {
       if (event.type === 'create' && event.data.sender_id !== userId) {
         // Cache conversations for 60s to avoid fetching on every message
         const now = Date.now();
         if (!this._conversationsCache || now - this._conversationsCacheTime > 60000) {
-          this._conversationsCache = await base44.entities.Conversation.list();
+          this._conversationsCache = await Conversation.list();
           this._conversationsCacheTime = now;
         }
         const conversations = this._conversationsCache;
@@ -209,7 +210,7 @@ class RealtimeNotificationSystem {
    */
   subscribeAdminNotifications() {
     // Nouvelles vérifications
-    const unsubVerification = base44.entities.VerificationRequest.subscribe((event) => {
+    const unsubVerification = VerificationRequest.subscribe((event) => {
       if (event.type === 'create') {
         toast('🔍 Nouvelle demande de vérification', {
           description: 'Un utilisateur demande la vérification de son compte',
@@ -224,7 +225,7 @@ class RealtimeNotificationSystem {
     });
 
     // Nouveaux litiges
-    const unsubDispute = base44.entities.Dispute.subscribe((event) => {
+    const unsubDispute = Dispute.subscribe((event) => {
       if (event.type === 'create') {
         toast('⚠️ Nouveau litige', {
           description: 'Un litige nécessite votre attention',
@@ -246,7 +247,7 @@ class RealtimeNotificationSystem {
    */
   subscribeVendorNotifications(userId) {
     // Nouvelles réservations
-    const unsubBooking = base44.entities.Booking.subscribe((event) => {
+    const unsubBooking = Booking.subscribe((event) => {
       if (event.type === 'create' && event.data.planner_id === userId) {
         const booking = event.data;
         toast('🎉 Nouvelle Réservation !', {
@@ -267,7 +268,7 @@ class RealtimeNotificationSystem {
     });
 
     // Nouveaux leads
-    const unsubLead = base44.entities.Lead.subscribe((event) => {
+    const unsubLead = Lead.subscribe((event) => {
       if (event.type === 'create' && event.data.status === 'open') {
         toast('🔔 Nouvelle Demande Prospect', {
           description: `${event.data.event_type} - ${event.data.location}`,
@@ -282,7 +283,7 @@ class RealtimeNotificationSystem {
     });
 
     // Avis clients
-    const unsubReview = base44.entities.VendorReview.subscribe((event) => {
+    const unsubReview = VendorReview.subscribe((event) => {
       if (event.type === 'create' && event.data.provider_id === userId) {
         const rating = event.data.rating;
         const emoji = rating >= 4 ? '⭐' : rating >= 3 ? '👍' : '📝';
@@ -302,7 +303,7 @@ class RealtimeNotificationSystem {
    */
   subscribeClientNotifications(userId) {
     // Mises à jour de réservations
-    const unsubBooking = base44.entities.Booking.subscribe((event) => {
+    const unsubBooking = Booking.subscribe((event) => {
       if (event.type === 'update' && event.data.created_by === userId) {
         const booking = event.data;
         const statusMessages = {
@@ -404,3 +405,5 @@ class RealtimeNotificationSystem {
 }
 
 export const realtimeNotifications = new RealtimeNotificationSystem();
+
+

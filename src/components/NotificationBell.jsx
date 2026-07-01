@@ -1,6 +1,7 @@
+﻿import { Service, VendorProfile, ClientProfile, Booking, Event, Conversation, Message, Review, Notification, Membership, Invoice, Region, Departement, Ville, Quartier, Fonction, PlatformFeedback, Contract, Dispute, Lead, Transaction, Payout, Refund, AppUser, Country, ServiceType } from '@/api/entities';
 import React, { useState, useEffect } from 'react';
 import { Bell } from "lucide-react";
-import { base44 } from "@/api/base44Client";
+
 import { Button } from "@/components/ui/button";
 import {
   Popover,
@@ -19,7 +20,7 @@ export default function NotificationBell({ user }) {
       // In a real app, this would be a subscription or polled
       try {
           // OPTIMIZED: Limit to 20 recent notifications only
-          const all = await base44.entities.Notification.list('-created_date', 20);
+          const all = await Notification.list('-created_date', 20);
           // Client side filter
           let userNotifs = all
             .filter(n => n.user_id === user.id)
@@ -28,8 +29,8 @@ export default function NotificationBell({ user }) {
           // If Admin, inject system alerts as notifications
           if (user.role === 'admin') {
                // OPTIMIZED: Fetch only pending items
-               const pendingPayouts = await base44.entities.ProviderPayout.filter({ transaction_status: 'pending_approval' });
-               const pendingRefunds = await base44.entities.ClientRefund.filter({ status: 'pending_approval' });
+               const pendingPayouts = await ProviderPayout.filter({ transaction_status: 'pending_approval' });
+               const pendingRefunds = await ClientRefund.filter({ status: 'pending_approval' });
                
                const actionablePayouts = pendingPayouts;
                const actionableRefunds = pendingRefunds;
@@ -107,7 +108,7 @@ export default function NotificationBell({ user }) {
     }
     
     try {
-      await base44.entities.Notification.update(notification.id, { is_read: true });
+      await Notification.update(notification.id, { is_read: true });
       setNotifications(prev => prev.map(n => n.id === notification.id ? { ...n, is_read: true } : n));
       setUnreadCount(prev => Math.max(0, prev - 1));
     } catch (e) {
@@ -126,7 +127,7 @@ export default function NotificationBell({ user }) {
     const unread = notifications.filter(n => !n.is_read && !n.type?.includes('admin_alert'));
     for (const n of unread) {
         try {
-            await base44.entities.Notification.update(n.id, { is_read: true });
+            await Notification.update(n.id, { is_read: true });
         } catch (e) {
             console.error("Failed to mark as read:", e);
         }
@@ -199,3 +200,4 @@ export default function NotificationBell({ user }) {
     </Popover>
   );
 }
+

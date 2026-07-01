@@ -1,3 +1,4 @@
+﻿import { Service, VendorProfile, ClientProfile, Booking, Event, Conversation, Message, Review, Notification, Membership, Invoice, Region, Departement, Ville, Quartier, Fonction, PlatformFeedback, Contract, Dispute, Lead, Transaction, Payout, Refund, AppUser, Country, ServiceType } from '@/api/entities';
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -14,7 +15,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
-import { base44 } from "@/api/base44Client";
+
 
 export default function CartIconNav() {
   const [cart, setCart] = useState([]);
@@ -58,7 +59,7 @@ export default function CartIconNav() {
       const user = await base44.auth.me();
       
       // Check if conversation already exists between user and vendor
-      const allConvs = await base44.entities.Conversation.list();
+      const allConvs = await Conversation.list();
       const existingConv = allConvs.find(c => 
         c.participants && 
         c.participants.includes(user.id) && 
@@ -71,7 +72,7 @@ export default function CartIconNav() {
       }
       
       // Create new conversation
-      const conversation = await base44.entities.Conversation.create({
+      const conversation = await Conversation.create({
         participants: [user.id, service.planner_id],
         subject: `À propos de: ${service.title}`,
         last_message: "Nouvelle conversation",
@@ -79,7 +80,7 @@ export default function CartIconNav() {
       });
       
       // Create first message
-      await base44.entities.Message.create({
+      await Message.create({
         conversation_id: conversation.id,
         sender_id: user.id,
         content: `Bonjour, je suis intéressé(e) par votre service "${service.title}". Pouvons-nous discuter des détails ?`,
@@ -135,7 +136,7 @@ export default function CartIconNav() {
         return;
       }
       
-      const event = await base44.entities.Event.create({
+      const event = await Event.create({
         name: eventType,
         event_type: eventType,
         event_date: eventDate,
@@ -144,7 +145,7 @@ export default function CartIconNav() {
       });
       
       for (const service of cart) {
-        await base44.entities.Booking.create({
+        await Booking.create({
           event_id: event.id,
           service_id: service.id,
           planner_id: service.planner_id,
@@ -313,3 +314,4 @@ export default function CartIconNav() {
     </Sheet>
   );
 }
+

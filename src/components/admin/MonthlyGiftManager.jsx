@@ -1,5 +1,6 @@
+﻿import { Service, VendorProfile, ClientProfile, Booking, Event, Conversation, Message, Review, Notification, Membership, Invoice, Region, Departement, Ville, Quartier, Fonction, PlatformFeedback, Contract, Dispute, Lead, Transaction, Payout, Refund, AppUser, Country, ServiceType } from '@/api/entities';
 import React, { useState } from 'react';
-import { base44 } from '@/api/base44Client';
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -37,7 +38,7 @@ export default function MonthlyGiftManager() {
   const { data: allVendors, isLoading: vendorsLoading } = useQuery({
     queryKey: ['all-vendors'],
     queryFn: async () => {
-      const vendors = await base44.entities.VendorProfile.list('-created_date', 5000);
+      const vendors = await VendorProfile.list('-created_date', 5000);
       return vendors;
     },
   });
@@ -46,7 +47,7 @@ export default function MonthlyGiftManager() {
   const { data: allReviews } = useQuery({
     queryKey: ['vendor-reviews'],
     queryFn: async () => {
-      const reviews = await base44.entities.VendorReview.filter({ status: 'approved' });
+      const reviews = await VendorReview.filter({ status: 'approved' });
       return reviews;
     },
   });
@@ -55,7 +56,7 @@ export default function MonthlyGiftManager() {
   const { data: distributions } = useQuery({
     queryKey: ['gift-distributions'],
     queryFn: async () => {
-      const dists = await base44.entities.GiftDistribution.list('-distribution_date', 100);
+      const dists = await GiftDistribution.list('-distribution_date', 100);
       return dists;
     },
   });
@@ -64,7 +65,7 @@ export default function MonthlyGiftManager() {
   const { data: giftUsages } = useQuery({
     queryKey: ['gift-usages'],
     queryFn: async () => {
-      const usages = await base44.entities.GiftUsage.list('-created_date', 5000);
+      const usages = await GiftUsage.list('-created_date', 5000);
       return usages;
     },
   });
@@ -116,7 +117,7 @@ export default function MonthlyGiftManager() {
       const currentUser = await base44.auth.me();
       
       // Créer l'enregistrement de distribution
-      const distribution = await base44.entities.GiftDistribution.create({
+      const distribution = await GiftDistribution.create({
         distribution_date: new Date().toISOString(),
         leads_count: leadsCount,
         total_vendors: targetVendors.length,
@@ -134,13 +135,13 @@ export default function MonthlyGiftManager() {
       for (const vendor of targetVendors) {
         try {
           // Ajouter les crédits reward
-          await base44.entities.VendorProfile.update(vendor.id, {
+          await VendorProfile.update(vendor.id, {
             reward_credits: (vendor.reward_credits || 0) + leadsCount,
             monthly_free_lead_used: false // Réinitialiser le flag
           });
 
           // Créer l'enregistrement d'usage pour tracking
-          await base44.entities.GiftUsage.create({
+          await GiftUsage.create({
             distribution_id: distribution.id,
             vendor_id: vendor.user_id,
             leads_received: leadsCount,
@@ -150,7 +151,7 @@ export default function MonthlyGiftManager() {
           });
 
           // Envoyer notification
-          await base44.entities.Notification.create({
+          await Notification.create({
             user_id: vendor.user_id,
             title: "🎁 Cadeau du Mois Arrivé !",
             message: `L'administrateur vient de vous offrir ${leadsCount} lead${leadsCount > 1 ? 's' : ''} gratuit${leadsCount > 1 ? 's' : ''} ! Allez trouver votre prochain client !`,
@@ -520,3 +521,4 @@ export default function MonthlyGiftManager() {
     </div>
   );
 }
+

@@ -1,4 +1,4 @@
-// ============================================================
+﻿// ============================================================
 //  base44Client.js  —  REMPLACÉ PAR SUPABASE
 //  Ce fichier remplace l'ancien SDK Base44.
 //  Toutes les autres parties du code n'ont PAS besoin de changer.

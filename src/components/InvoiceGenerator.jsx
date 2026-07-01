@@ -1,4 +1,5 @@
-﻿import { InvokeLLM, SendEmail, UploadFile, SendSMS, GenerateImage, ExtractDataFromUploadedFile } from '@/api/integrations';
+﻿import { Service, VendorProfile, ClientProfile, Booking, Event, Conversation, Message, Review, Notification, Membership, Invoice, Region, Departement, Ville, Quartier, Fonction, PlatformFeedback, Contract, Dispute, Lead, Transaction, Payout, Refund, AppUser, Country, ServiceType } from '@/api/entities';
+import { InvokeLLM, SendEmail, UploadFile, SendSMS, GenerateImage, ExtractDataFromUploadedFile } from '@/api/integrations';
 
 export async function generateAndSendInvoice(contract, booking, vendorProfile, clientProfile) {
   try {
@@ -89,7 +90,7 @@ export async function generateAndSendInvoice(contract, booking, vendorProfile, c
     const { file_url } = await UploadFile({ file: pdfFile });
     
     // Créer l'enregistrement Invoice dans la base de données
-    const invoice = await base44.entities.Invoice.create({
+    const invoice = await Invoice.create({
       invoice_number: invoiceNumber,
       contract_id: contract.id,
       booking_id: booking.id,
@@ -104,7 +105,7 @@ export async function generateAndSendInvoice(contract, booking, vendorProfile, c
     
     // Envoyer par email au prestataire
     try {
-      const vendorUsers = await base44.entities.User.list();
+      const vendorUsers = await User.list();
       const vendorUser = vendorUsers.find(u => u.id === vendorProfile?.user_id);
       
       if (vendorUser) {
@@ -152,7 +153,7 @@ export async function generateAndSendInvoice(contract, booking, vendorProfile, c
     
     // Envoyer par email au client
     try {
-      const clientUsers = await base44.entities.User.list();
+      const clientUsers = await User.list();
       const clientUser = clientUsers.find(u => u.id === clientProfile?.user_id);
       
       if (clientUser) {
@@ -207,3 +208,5 @@ export async function generateAndSendInvoice(contract, booking, vendorProfile, c
     throw error;
   }
 }
+
+

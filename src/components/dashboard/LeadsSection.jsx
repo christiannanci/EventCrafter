@@ -1,3 +1,4 @@
+﻿import { Service, VendorProfile, ClientProfile, Booking, Event, Conversation, Message, Review, Notification, Membership, Invoice, Region, Departement, Ville, Quartier, Fonction, PlatformFeedback, Contract, Dispute, Lead, Transaction, Payout, Refund, AppUser, Country, ServiceType } from '@/api/entities';
 import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -5,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { TrendingUp, MapPin, CalendarCheck, Wallet, MessageSquare, Crown, AlertCircle, ChevronLeft, ChevronRight, Lock, Unlock, AlertOctagon } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
-import { base44 } from "@/api/base44Client";
+
 import { useToast } from "@/components/ui/use-toast";
 import { getLeadPricingInfo } from '@/components/LeadPricingCalculator';
 import { useRewardCredit } from '@/components/RewardSystem';
@@ -38,8 +39,8 @@ export default function LeadsSection({
       if (!user?.id) return;
       try {
         const [unlocks, policyConfig] = await Promise.all([
-          base44.entities.LeadUnlock.filter({ vendor_id: user.id }),
-          base44.entities.RefundPolicyConfig.filter({ config_key: 'default' })
+          LeadUnlock.filter({ vendor_id: user.id }),
+          RefundPolicyConfig.filter({ config_key: 'default' })
         ]);
         
         setUnlockedLeads(new Set(unlocks.map(u => u.lead_id)));
@@ -55,7 +56,7 @@ export default function LeadsSection({
           
           if (daysSince >= (policyConfig[0]?.waiting_period_days || 7)) {
             // Vérifier si pas déjà demandé
-            const existingRequest = await base44.entities.LeadRefundRequest.filter({ 
+            const existingRequest = await LeadRefundRequest.filter({ 
               vendor_id: user.id, 
               lead_id: unlock.lead_id 
             });
@@ -112,7 +113,7 @@ export default function LeadsSection({
         }
         
         // Déduire 1 crédit
-        await base44.entities.VendorProfile.update(vendorProfile.id, {
+        await VendorProfile.update(vendorProfile.id, {
           reward_credits: vendorProfile.reward_credits - 1
         });
         
@@ -132,13 +133,13 @@ export default function LeadsSection({
           return;
         }
         
-        await base44.entities.VendorProfile.update(vendorProfile.id, {
+        await VendorProfile.update(vendorProfile.id, {
           account_balance: (vendorProfile.account_balance || 0) - amountPaid
         });
       }
       
       // Créer l'enregistrement de déblocage
-      await base44.entities.LeadUnlock.create({
+      await LeadUnlock.create({
         vendor_id: user.id,
         lead_id: lead.id,
         unlock_type: unlockType,
@@ -147,7 +148,7 @@ export default function LeadsSection({
       });
 
       // Créer transaction
-      await base44.entities.Transaction.create({
+      await Transaction.create({
         user_id: user.id,
         amount: -amountPaid,
         type: 'ad_fee',
@@ -181,7 +182,7 @@ export default function LeadsSection({
 
   const handleContactClient = async (lead) => {
     try {
-      const allConvs = await base44.entities.Conversation.list('-created_date', 100);
+      const allConvs = await Conversation.list('-created_date', 100);
       const existing = allConvs.find(c => 
         c.participants.includes(user.id) && 
         c.participants.includes(lead.client_id)
@@ -190,7 +191,7 @@ export default function LeadsSection({
       if (existing) {
         window.location.href = `/Chat?conversationId=${existing.id}`;
       } else {
-        const newConv = await base44.entities.Conversation.create({
+        const newConv = await Conversation.create({
           participants: [String(user.id), String(lead.client_id)],
           last_message: `Réponse à la demande: ${lead.event_type}`,
           last_message_at: new Date().toISOString()
@@ -215,14 +216,14 @@ export default function LeadsSection({
   // Demander remboursement
   const handleRequestRefund = async (lead) => {
     try {
-      const unlock = await base44.entities.LeadUnlock.filter({ 
+      const unlock = await LeadUnlock.filter({ 
         vendor_id: user.id, 
         lead_id: lead.id 
       });
       
       if (unlock.length === 0) return;
 
-      await base44.entities.LeadRefundRequest.create({
+      await LeadRefundRequest.create({
         vendor_id: user.id,
         lead_id: lead.id,
         unlock_id: unlock[0].id,
@@ -503,3 +504,4 @@ export default function LeadsSection({
     </Card>
   );
 }
+

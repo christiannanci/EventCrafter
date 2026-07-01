@@ -1,9 +1,10 @@
+﻿import { Service, VendorProfile, ClientProfile, Booking, Event, Conversation, Message, Review, Notification, Membership, Invoice, Region, Departement, Ville, Quartier, Fonction, PlatformFeedback, Contract, Dispute, Lead, Transaction, Payout, Refund, AppUser, Country, ServiceType } from '@/api/entities';
 /**
  * RN6: Système de prompts automatiques pour encourager l'upgrade
  */
 
 import React, { useEffect, useState } from 'react';
-import { base44 } from "@/api/base44Client";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Crown, TrendingUp, AlertCircle, X } from "lucide-react";
@@ -25,7 +26,7 @@ export default function UpgradePromptSystem({ vendorProfile, onUpgradeClick }) {
       const weekAgo = new Date();
       weekAgo.setDate(weekAgo.getDate() - 7);
 
-      const allLeads = await base44.entities.Lead.list();
+      const allLeads = await Lead.list();
       const relevantLeads = allLeads.filter(lead => {
         const leadDate = new Date(lead.created_date);
         return leadDate >= weekAgo && lead.status === 'open';
@@ -103,3 +104,4 @@ export default function UpgradePromptSystem({ vendorProfile, onUpgradeClick }) {
     </Card>
   );
 }
+

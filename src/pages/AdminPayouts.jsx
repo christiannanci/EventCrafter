@@ -1,5 +1,6 @@
-﻿import React, { useState, useEffect } from 'react';
-import { base44 } from "@/api/base44Client";
+﻿import { Service, VendorProfile, ClientProfile, Booking, Event, Conversation, Message, Review, Notification, Membership, Invoice, Region, Departement, Ville, Quartier, Fonction, PlatformFeedback, Contract, Dispute, Lead, Transaction, Payout, Refund, AppUser, Country, ServiceType } from '@/api/entities';
+import React, { useState, useEffect } from 'react';
+
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -73,11 +74,11 @@ export default function AdminPayouts() {
     setLoading(true);
     try {
       // Fetch ProviderPayouts
-      const payoutsList = await base44.entities.ProviderPayout.list();
+      const payoutsList = await ProviderPayout.list();
       setPayouts(payoutsList.sort((a, b) => new Date(b.created_date) - new Date(a.created_date)));
 
       // Fetch ClientRefunds
-      const refundsList = await base44.entities.ClientRefund.list();
+      const refundsList = await ClientRefund.list();
       setRefunds(refundsList.sort((a, b) => new Date(b.created_date) - new Date(a.created_date)));
     } catch (e) {
       console.error(e);
@@ -93,23 +94,23 @@ export default function AdminPayouts() {
     setProcessingId(payout.id);
     try {
         // 1. Update Payout Record
-        await base44.entities.ProviderPayout.update(payout.id, {
+        await ProviderPayout.update(payout.id, {
             transaction_status: 'approved',
             cash_voucher_number: voucherNumber,
             payment_date: new Date().toISOString()
         });
 
         // 2. Update Vendor Balance
-        const profiles = await base44.entities.VendorProfile.filter({ user_id: payout.provider_id });
+        const profiles = await VendorProfile.filter({ user_id: payout.provider_id });
         if (profiles.length > 0) {
             const profile = profiles[0];
-            await base44.entities.VendorProfile.update(profile.id, {
+            await VendorProfile.update(profile.id, {
                 account_balance: (profile.account_balance || 0) + (payout.amount_paid || 0)
             });
         }
         
         // 3. Notify Vendor
-        await base44.entities.Notification.create({
+        await Notification.create({
             user_id: payout.provider_id,
             title: "Payout Approved",
             message: `Your payout of ${payout.amount_paid?.toLocaleString()} FCFA (Ref: ${payout.payment_code}) has been approved and added to your balance. Voucher: ${voucherNumber}`,
@@ -134,14 +135,14 @@ export default function AdminPayouts() {
       setProcessingId(refund.id);
       try {
           // 1. Update Refund Record
-          await base44.entities.ClientRefund.update(refund.id, {
+          await ClientRefund.update(refund.id, {
               status: 'processed',
               processed_date: new Date().toISOString()
           });
 
           // 2. Update Original Transaction
           if (refund.transaction_reference) {
-               await base44.entities.Transaction.update(refund.transaction_reference, {
+               await Transaction.update(refund.transaction_reference, {
                    status: 'refunded',
                    description: `Refunded ${refund.amount_refunded} (Code: ${refund.refund_code})`
                });
@@ -149,7 +150,7 @@ export default function AdminPayouts() {
 
           // 3. Notify Client (if we have client_id, which we should)
           if (refund.client_id && refund.client_id !== 'unknown') {
-               await base44.entities.Notification.create({
+               await Notification.create({
                   user_id: refund.client_id,
                   title: "Refund Approved",
                   message: `Your refund of ${refund.amount_refunded?.toLocaleString()} FCFA has been processed.`,
@@ -330,3 +331,5 @@ export default function AdminPayouts() {
     </div>
   );
 }
+
+

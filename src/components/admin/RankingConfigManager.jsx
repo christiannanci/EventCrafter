@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { base44 } from '@/api/base44Client';
+﻿import React, { useState } from 'react';
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -27,7 +27,7 @@ export default function RankingConfigManager() {
   const { data: existingConfig, isLoading } = useQuery({
     queryKey: ['ranking-config'],
     queryFn: async () => {
-      const configs = await base44.entities.RankingConfig.filter({ config_key: 'default' });
+      const configs = await RankingConfig.filter({ config_key: 'default' });
       return configs[0];
     },
   });
@@ -48,9 +48,9 @@ export default function RankingConfigManager() {
   const saveMutation = useMutation({
     mutationFn: async (newConfig) => {
       if (existingConfig) {
-        return await base44.entities.RankingConfig.update(existingConfig.id, newConfig);
+        return await RankingConfig.update(existingConfig.id, newConfig);
       } else {
-        return await base44.entities.RankingConfig.create({
+        return await RankingConfig.create({
           config_key: 'default',
           ...newConfig
         });

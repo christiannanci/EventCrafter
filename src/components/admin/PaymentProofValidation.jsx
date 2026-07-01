@@ -1,5 +1,6 @@
-﻿import React, { useState, useEffect } from 'react';
-import { base44 } from "@/api/base44Client";
+﻿import { Service, VendorProfile, ClientProfile, Booking, Event, Conversation, Message, Review, Notification, Membership, Invoice, Region, Departement, Ville, Quartier, Fonction, PlatformFeedback, Contract, Dispute, Lead, Transaction, Payout, Refund, AppUser, Country, ServiceType } from '@/api/entities';
+import React, { useState, useEffect } from 'react';
+
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -25,7 +26,7 @@ export default function PaymentProofValidation() {
   const fetchProofs = async () => {
     setLoading(true);
     try {
-      const allProofs = await base44.entities.PaymentProof.list('-created_date');
+      const allProofs = await PaymentProof.list('-created_date');
       setProofs(allProofs);
     } catch (error) {
       console.error(error);
@@ -40,7 +41,7 @@ export default function PaymentProofValidation() {
       const currentUser = await base44.auth.me();
       const proof = proofs.find(p => p.id === proofId);
       
-      await base44.entities.PaymentProof.update(proofId, {
+      await PaymentProof.update(proofId, {
         status,
         admin_notes: adminNotes,
         validated_by: currentUser.id,
@@ -52,7 +53,7 @@ export default function PaymentProofValidation() {
         let payment_method = proof.payment_method;
         
         // Create Transaction Record (Escrow)
-        const transaction = await base44.entities.Transaction.create({
+        const transaction = await Transaction.create({
           user_id: proof.user_id,
           amount: proof.amount,
           type: 'booking_payment',
@@ -64,9 +65,9 @@ export default function PaymentProofValidation() {
 
         // Generate Receipt
         if (proof.booking_id) {
-          const booking = await base44.entities.Booking.list().then(b => b.find(bk => bk.id === proof.booking_id));
+          const booking = await Booking.list().then(b => b.find(bk => bk.id === proof.booking_id));
           if (booking) {
-            await base44.entities.Receipt.create({
+            await Receipt.create({
               receipt_number: `RCPT-${new Date().getFullYear()}-${Math.floor(Math.random() * 100000)}`,
               transaction_id: transaction.id,
               invoice_id: proof.invoice_id || null,
@@ -80,18 +81,18 @@ export default function PaymentProofValidation() {
 
             // Update Invoice Status
             if (proof.invoice_id) {
-              await base44.entities.Invoice.update(proof.invoice_id, { status: 'paid' });
+              await Invoice.update(proof.invoice_id, { status: 'paid' });
             }
 
             // Update Booking Status
-            await base44.entities.Booking.update(proof.booking_id, {
+            await Booking.update(proof.booking_id, {
               status: 'confirmed',
               payment_status: 'paid',
               paid_amount: (booking.paid_amount || 0) + proof.amount
             });
 
             // Notify Vendor
-            await base44.entities.Notification.create({
+            await Notification.create({
               user_id: booking.planner_id,
               title: "Paiement Validé - Prêt à démarrer",
               message: `Paiement de ${proof.amount?.toLocaleString()} FCFA reçu et validé (Escrow). Vous pouvez commencer le service.`,
@@ -104,17 +105,17 @@ export default function PaymentProofValidation() {
 
         // Handle membership subscription
         if (proof.membership_id) {
-          const membership = await base44.entities.Membership.list().then(m => m.find(mb => mb.id === proof.membership_id));
+          const membership = await Membership.list().then(m => m.find(mb => mb.id === proof.membership_id));
           if (membership) {
-            await base44.entities.Membership.update(proof.membership_id, {
+            await Membership.update(proof.membership_id, {
               status: 'active',
               payment_status: 'paid'
             });
 
             // ⚠️ SÉCURITÉ CRITIQUE: SEUL l'admin peut changer le plan après validation
-            const vendorProfiles = await base44.entities.VendorProfile.filter({ user_id: proof.user_id });
+            const vendorProfiles = await VendorProfile.filter({ user_id: proof.user_id });
             if (vendorProfiles.length > 0) {
-              await base44.entities.VendorProfile.update(vendorProfiles[0].id, {
+              await VendorProfile.update(vendorProfiles[0].id, {
                 plan: membership.membership_type_code.toLowerCase(),
                 subscription_status: 'active',
                 subscription_end_date: membership.end_date
@@ -124,7 +125,7 @@ export default function PaymentProofValidation() {
         }
 
         // Notify user
-        await base44.entities.Notification.create({
+        await Notification.create({
           user_id: proof.user_id,
           title: "Paiement Validé ✅",
           message: `Votre paiement de ${proof.amount?.toLocaleString()} FCFA a été validé. Merci!`,
@@ -140,7 +141,7 @@ export default function PaymentProofValidation() {
         });
       } else {
         // Notify user of rejection (cloche + email)
-        await base44.entities.Notification.create({
+        await Notification.create({
           user_id: proof.user_id,
           title: "Paiement Rejeté ❌",
           message: `Votre preuve de paiement a été rejetée. Raison: ${adminNotes || 'Non spécifiée'}`,
@@ -150,7 +151,7 @@ export default function PaymentProofValidation() {
         });
 
         // Get user info for email
-        const userList = await base44.entities.User.list();
+        const userList = await User.list();
         const rejectedUser = userList.find(u => u.id === proof.user_id);
         
         if (rejectedUser) {
@@ -187,7 +188,7 @@ export default function PaymentProofValidation() {
     setNotifyingUser(true);
     try {
       // Notification via cloche
-      await base44.entities.Notification.create({
+      await Notification.create({
         user_id: proof.user_id,
         title: "Paiement Rejeté ❌",
         message: `Votre preuve de paiement de ${proof.amount?.toLocaleString()} FCFA a été rejetée. Raison: ${proof.admin_notes || 'Non spécifiée'}. Veuillez soumettre une nouvelle preuve valide.`,
@@ -197,7 +198,7 @@ export default function PaymentProofValidation() {
       });
 
       // Email
-      const userList = await base44.entities.User.list();
+      const userList = await User.list();
       const rejectedUser = userList.find(u => u.id === proof.user_id);
       
       if (rejectedUser) {
@@ -239,7 +240,7 @@ L'équipe EventCrafter`
   const handleReexamine = async (proofId) => {
     setReexamining(true);
     try {
-      await base44.entities.PaymentProof.update(proofId, {
+      await PaymentProof.update(proofId, {
         status: 'pending',
         admin_notes: '',
         validated_by: null,
@@ -475,3 +476,5 @@ L'équipe EventCrafter`
     </div>
   );
 }
+
+

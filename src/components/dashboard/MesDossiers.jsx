@@ -1,5 +1,6 @@
+﻿import { Service, VendorProfile, ClientProfile, Booking, Event, Conversation, Message, Review, Notification, Membership, Invoice, Region, Departement, Ville, Quartier, Fonction, PlatformFeedback, Contract, Dispute, Lead, Transaction, Payout, Refund, AppUser, Country, ServiceType } from '@/api/entities';
 import React, { useState, useEffect } from 'react';
-import { base44 } from "@/api/base44Client";
+
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -52,11 +53,11 @@ export default function MesDossiers({ vendorId, vendorProfile, onUpgradeClick })
     
     try {
       // Charger les bookings pour vérifier les litiges
-      const allBookings = await base44.entities.Booking.list().catch(() => []);
+      const allBookings = await Booking.list().catch(() => []);
       const myBookings = (allBookings || []).filter(b => b?.planner_id === vendorId);
       
       // Vérifier les litiges ouverts
-      const allDisputes = await base44.entities.Dispute.list().catch(() => []);
+      const allDisputes = await Dispute.list().catch(() => []);
       const myOpenDisputes = (allDisputes || []).filter(d => {
         if (!d) return false;
         const booking = (myBookings || []).find(b => b?.id === d.booking_id);
@@ -65,7 +66,7 @@ export default function MesDossiers({ vendorId, vendorProfile, onUpgradeClick })
 
       // Si un litige est ouvert, désactiver les boosts
       if (myOpenDisputes.length > 0 && vendorProfile.smart_match_boost_active) {
-        await base44.entities.VendorProfile.update(vendorProfile.id, {
+        await VendorProfile.update(vendorProfile.id, {
           smart_match_boost_active: false
         });
         toast({
@@ -85,17 +86,17 @@ export default function MesDossiers({ vendorId, vendorProfile, onUpgradeClick })
     setLoading(true);
     try {
       // 1. Charger les leads débloqués
-      const unlockedLeads = await base44.entities.LeadUnlock.filter({ vendor_id: vendorId }).catch(() => []);
+      const unlockedLeads = await LeadUnlock.filter({ vendor_id: vendorId }).catch(() => []);
       const leadIds = (unlockedLeads || []).map(u => u?.lead_id).filter(Boolean);
-      const allLeads = await base44.entities.Lead.list().catch(() => []);
+      const allLeads = await Lead.list().catch(() => []);
       const myLeads = (allLeads || []).filter(l => l && leadIds.includes(l.id));
 
       // 2. Charger les conversations
-      const allConversations = await base44.entities.Conversation.list().catch(() => []);
+      const allConversations = await Conversation.list().catch(() => []);
       const myConversations = (allConversations || []).filter(c => c && (c.planner_id === vendorId || c.vendor_id === vendorId));
 
       // 3. Charger les bookings
-      const allBookings = await base44.entities.Booking.list().catch(() => []);
+      const allBookings = await Booking.list().catch(() => []);
       const myBookings = (allBookings || []).filter(b => b?.planner_id === vendorId);
 
       // 4. Construire les dossiers unifiés
@@ -143,7 +144,7 @@ export default function MesDossiers({ vendorId, vendorProfile, onUpgradeClick })
       });
 
       // Enrichir avec bookings (passage à "confirme" ou "termine")
-      const allContracts = await base44.entities.Contract.list().catch(() => []);
+      const allContracts = await Contract.list().catch(() => []);
       
       myBookings.forEach(booking => {
         if (!booking) return;
@@ -310,7 +311,7 @@ export default function MesDossiers({ vendorId, vendorProfile, onUpgradeClick })
     }
     
     try {
-      const allBookings = await base44.entities.Booking.list().catch(() => []);
+      const allBookings = await Booking.list().catch(() => []);
       const booking = (allBookings || []).find(b => b?.id === dossier.bookingId);
       
       if (booking) {
@@ -655,7 +656,7 @@ export default function MesDossiers({ vendorId, vendorProfile, onUpgradeClick })
                           className="border-amber-600 text-amber-700 hover:bg-amber-50"
                           onClick={async () => {
                             try {
-                              const allBookings = await base44.entities.Booking.list().catch(() => []);
+                              const allBookings = await Booking.list().catch(() => []);
                               const booking = allBookings.find(b => b.id === dossier.bookingId);
                               if (booking) {
                                 setSelectedDossier({ ...dossier, booking });
@@ -715,7 +716,7 @@ export default function MesDossiers({ vendorId, vendorProfile, onUpgradeClick })
                         variant="outline"
                         className="border-blue-600 text-blue-700 hover:bg-blue-50"
                         onClick={async () => {
-                          const allBookings = await base44.entities.Booking.list().catch(() => []);
+                          const allBookings = await Booking.list().catch(() => []);
                           const booking = allBookings.find(b => b.id === dossier.bookingId);
                           if (booking) { setSelectedDossier({ ...dossier, booking }); setShowDisputeReplyDialog(true); }
                         }}
@@ -737,7 +738,7 @@ export default function MesDossiers({ vendorId, vendorProfile, onUpgradeClick })
                             className="border-amber-600 text-amber-700 hover:bg-amber-50"
                             onClick={async () => {
                               try {
-                                const allBookings = await base44.entities.Booking.list().catch(() => []);
+                                const allBookings = await Booking.list().catch(() => []);
                                 const booking = allBookings.find(b => b.id === dossier.bookingId);
                                 if (booking) {
                                   setSelectedDossier({ ...dossier, booking });
@@ -770,3 +771,4 @@ export default function MesDossiers({ vendorId, vendorProfile, onUpgradeClick })
     </div>
   );
 }
+

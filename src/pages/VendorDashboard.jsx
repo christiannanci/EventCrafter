@@ -1,5 +1,6 @@
-﻿import React, { useState, useEffect } from 'react';
-import { base44 } from "@/api/base44Client";
+﻿import { Service, VendorProfile, ClientProfile, Booking, Event, Conversation, Message, Review, Notification, Membership, Invoice, Region, Departement, Ville, Quartier, Fonction, PlatformFeedback, Contract, Dispute, Lead, Transaction, Payout, Refund, AppUser, Country, ServiceType } from '@/api/entities';
+import React, { useState, useEffect } from 'react';
+
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -160,7 +161,7 @@ export default function VendorDashboard() {
   useEffect(() => {
     if (!user || !myServices) return;
 
-    const unsubscribe = base44.entities.Lead.subscribe(async (event) => {
+    const unsubscribe = Lead.subscribe(async (event) => {
       if (event.type === 'create' && event.data.status === 'open') {
         const newLead = event.data;
         const categoryMatch = newLead.service_category === 'All' || 
@@ -195,7 +196,7 @@ export default function VendorDashboard() {
   useEffect(() => {
     if (!user) return;
 
-    const unsubscribe = base44.entities.Booking.subscribe(async (event) => {
+    const unsubscribe = Booking.subscribe(async (event) => {
       if (event.type === 'create' && event.data.planner_id === user.id) {
         const newBooking = event.data;
         
@@ -316,13 +317,13 @@ export default function VendorDashboard() {
       }
       
       if (editingService) {
-        await base44.entities.Service.update(editingService.id, {
+        await Service.update(editingService.id, {
           ...newService,
           price_min: parseFloat(newService.price_min)
         });
         toast({ title: "Service modifié avec succès" });
       } else {
-        await base44.entities.Service.create({
+        await Service.create({
           ...newService,
           service_code: generateEntityCode('SERVICE'),
           slug: generateSlug(newService.title),
@@ -391,14 +392,14 @@ export default function VendorDashboard() {
 
   const updateBookingStatus = async (id, status) => {
     try {
-      await base44.entities.Booking.update(id, { status });
+      await Booking.update(id, { status });
       
       if (status === 'completed') {
-          const txs = await base44.entities.Transaction.list();
+          const txs = await Transaction.list();
           const tx = txs.find(t => t.reference_id === id && t.status === 'escrow_held');
           
           if (tx) {
-              await base44.entities.Transaction.update(tx.id, { 
+              await Transaction.update(tx.id, { 
                   status: 'released',
                   description: tx.description + " (Released)" 
               });
@@ -428,7 +429,7 @@ export default function VendorDashboard() {
   const deleteService = async (id) => {
     if(confirm("Êtes-vous sûr de vouloir supprimer ce service ?")) {
       try {
-        const services = await base44.entities.Service.list();
+        const services = await Service.list();
         const service = services.find(s => s.id === id);
         
         if (!service) {
@@ -440,7 +441,7 @@ export default function VendorDashboard() {
           throw new Error("Vous n'avez pas la permission de supprimer ce service");
         }
 
-        await base44.entities.Service.delete(id);
+        await Service.delete(id);
         toast({ title: "Service supprimé avec succès" });
         refetch();
       } catch (error) {
@@ -1017,3 +1018,5 @@ export default function VendorDashboard() {
     </div>
   );
 }
+
+

@@ -1,4 +1,4 @@
-import { base44 } from '@/api/base44Client';
+﻿
 
 /**
  * Détermine la catégorie d'un lead basée sur le budget, le nombre d'invités et le type d'événement
@@ -42,7 +42,7 @@ export function calculateLeadCategory(budgetAmount, guestCount, eventType) {
 export async function getLeadPrice(budgetCategory) {
   try {
     // Essayer de charger la config depuis la DB
-    const configs = await base44.entities.LeadPricingConfig.filter({ config_key: 'default' });
+    const configs = await LeadPricingConfig.filter({ config_key: 'default' });
     const config = configs[0];
     
     if (config) {

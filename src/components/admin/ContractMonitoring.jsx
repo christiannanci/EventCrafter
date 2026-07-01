@@ -1,4 +1,5 @@
-﻿import React, { useState } from 'react';
+﻿import { Service, VendorProfile, ClientProfile, Booking, Event, Conversation, Message, Review, Notification, Membership, Invoice, Region, Departement, Ville, Quartier, Fonction, PlatformFeedback, Contract, Dispute, Lead, Transaction, Payout, Refund, AppUser, Country, ServiceType } from '@/api/entities';
+import React, { useState } from 'react';
 import { InvokeLLM, SendEmail, UploadFile, SendSMS, GenerateImage, ExtractDataFromUploadedFile } from '@/api/integrations';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -30,23 +31,23 @@ export default function ContractMonitoring() {
   // Charger les données
   const { data: invoices = [] } = useQuery({
     queryKey: ['admin-invoices'],
-    queryFn: () => base44.entities.Invoice.list('-issued_date', 1000)
+    queryFn: () => Invoice.list('-issued_date', 1000)
   });
 
   const { data: bookings = [] } = useQuery({
     queryKey: ['admin-bookings'],
-    queryFn: () => base44.entities.Booking.list('-created_date', 1000)
+    queryFn: () => Booking.list('-created_date', 1000)
   });
 
   const { data: contracts = [] } = useQuery({
     queryKey: ['admin-contracts'],
-    queryFn: () => base44.entities.Contract.list('-created_date', 1000)
+    queryFn: () => Contract.list('-created_date', 1000)
   });
 
   const { data: vendors = {} } = useQuery({
     queryKey: ['admin-vendors-map'],
     queryFn: async () => {
-      const allVendors = await base44.entities.VendorProfile.list('-created_date', 500);
+      const allVendors = await VendorProfile.list('-created_date', 500);
       const map = {};
       allVendors.forEach(v => map[v.user_id] = v);
       return map;
@@ -87,17 +88,17 @@ export default function ContractMonitoring() {
   const closeManuallyMutation = useMutation({
     mutationFn: async ({ bookingId, reason }) => {
       // Mettre à jour le statut
-      await base44.entities.Booking.update(bookingId, {
+      await Booking.update(bookingId, {
         status: 'completed',
         payment_status: 'fully_paid'
       });
 
       // Libérer les fonds
-      const transactions = await base44.entities.Transaction.filter({ booking_id: bookingId });
+      const transactions = await Transaction.filter({ booking_id: bookingId });
       const escrowTx = transactions.find(t => t.status === 'escrow_held');
       
       if (escrowTx) {
-        await base44.entities.Transaction.update(escrowTx.id, {
+        await Transaction.update(escrowTx.id, {
           status: 'released',
           description: escrowTx.description + ` (Admin closure: ${reason})`
         });
@@ -106,7 +107,7 @@ export default function ContractMonitoring() {
       // Notification au vendeur
       const booking = bookings.find(b => b.id === bookingId);
       if (booking) {
-        await base44.entities.Notification.create({
+        await Notification.create({
           user_id: booking.planner_id,
           title: '✅ Service Clôturé par Admin',
           message: `Votre service a été marqué comme terminé par l'administration. Raison: ${reason}`,
@@ -130,11 +131,11 @@ export default function ContractMonitoring() {
       const booking = bookings.find(b => b.id === bookingId);
       if (!booking) return;
 
-      const allUsers = await base44.entities.User.list();
+      const allUsers = await User.list();
       const clientUser = allUsers.find(u => u.email === booking.created_by);
       
       if (clientUser) {
-        await base44.entities.Notification.create({
+        await Notification.create({
           user_id: clientUser.id,
           title: '⏰ Rappel de Paiement',
           message: `Votre paiement est en attente depuis plus de 48h. Veuillez procéder au paiement pour confirmer votre réservation.`,
@@ -448,3 +449,5 @@ export default function ContractMonitoring() {
     </div>
   );
 }
+
+

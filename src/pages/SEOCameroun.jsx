@@ -1,5 +1,6 @@
+﻿import { Service, VendorProfile, ClientProfile, Booking, Event, Conversation, Message, Review, Notification, Membership, Invoice, Region, Departement, Ville, Quartier, Fonction, PlatformFeedback, Contract, Dispute, Lead, Transaction, Payout, Refund, AppUser, Country, ServiceType } from '@/api/entities';
 import React, { useEffect, useState } from 'react';
-import { base44 } from "@/api/base44Client";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Search, MapPin, Star, ArrowRight, CheckCircle2 } from "lucide-react";
@@ -12,8 +13,8 @@ export default function SEOCameroun() {
 
   useEffect(() => {
     const loadData = async () => {
-      const allServices = await base44.entities.Service.list('-created_date', 100);
-      const vendors = await base44.entities.VendorProfile.list();
+      const allServices = await Service.list('-created_date', 100);
+      const vendors = await VendorProfile.list();
       const cities = [...new Set(allServices.map(s => s.city).filter(Boolean))];
       
       setServices(allServices.slice(0, 8));
@@ -306,3 +307,4 @@ export default function SEOCameroun() {
     </div>
   );
 }
+

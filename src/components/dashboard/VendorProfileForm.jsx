@@ -1,5 +1,6 @@
-﻿import React, { useState, useEffect } from 'react';
-import { base44 } from "@/api/base44Client";
+﻿import { Service, VendorProfile, ClientProfile, Booking, Event, Conversation, Message, Review, Notification, Membership, Invoice, Region, Departement, Ville, Quartier, Fonction, PlatformFeedback, Contract, Dispute, Lead, Transaction, Payout, Refund, AppUser, Country, ServiceType } from '@/api/entities';
+import React, { useState, useEffect } from 'react';
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -170,9 +171,9 @@ export default function VendorProfileForm({ user, initialProfile, onSave }) {
 
       if (initialProfile?.id) {
         // Ne PAS inclure plan, subscription_status, account_balance dans l'update
-        await base44.entities.VendorProfile.update(initialProfile.id, payload);
+        await VendorProfile.update(initialProfile.id, payload);
       } else {
-        await base44.entities.VendorProfile.create({
+        await VendorProfile.create({
             ...payload,
             user_id: user.id,
             plan: 'free', // Par défaut pour les nouveaux
@@ -398,3 +399,5 @@ export default function VendorProfileForm({ user, initialProfile, onSave }) {
     </Card>
   );
 }
+
+

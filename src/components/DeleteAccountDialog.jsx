@@ -1,3 +1,4 @@
+﻿import { Service, VendorProfile, ClientProfile, Booking, Event, Conversation, Message, Review, Notification, Membership, Invoice, Region, Departement, Ville, Quartier, Fonction, PlatformFeedback, Contract, Dispute, Lead, Transaction, Payout, Refund, AppUser, Country, ServiceType } from '@/api/entities';
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,7 +13,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Trash2 } from "lucide-react";
-import { base44 } from "@/api/base44Client";
+
 
 export default function DeleteAccountDialog({ user }) {
   const [open, setOpen] = useState(false);
@@ -24,11 +25,11 @@ export default function DeleteAccountDialog({ user }) {
     setLoading(true);
     try {
       const [clientProfiles, vendorProfiles] = await Promise.all([
-        base44.entities.ClientProfile.filter({ user_id: user.id }),
-        base44.entities.VendorProfile.filter({ user_id: user.id }),
+        ClientProfile.filter({ user_id: user.id }),
+        VendorProfile.filter({ user_id: user.id }),
       ]);
-      for (const p of clientProfiles) await base44.entities.ClientProfile.delete(p.id);
-      for (const p of vendorProfiles) await base44.entities.VendorProfile.delete(p.id);
+      for (const p of clientProfiles) await ClientProfile.delete(p.id);
+      for (const p of vendorProfiles) await VendorProfile.delete(p.id);
       await base44.auth.logout('/');
     } catch (e) {
       setLoading(false);
@@ -80,3 +81,4 @@ export default function DeleteAccountDialog({ user }) {
     </div>
   );
 }
+

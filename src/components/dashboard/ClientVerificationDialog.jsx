@@ -1,9 +1,10 @@
+﻿import { Service, VendorProfile, ClientProfile, Booking, Event, Conversation, Message, Review, Notification, Membership, Invoice, Region, Departement, Ville, Quartier, Fonction, PlatformFeedback, Contract, Dispute, Lead, Transaction, Payout, Refund, AppUser, Country, ServiceType } from '@/api/entities';
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { base44 } from "@/api/base44Client";
+
 import { useToast } from "@/components/ui/use-toast";
 import { Shield, Send, CheckCircle2, Clock, XCircle } from "lucide-react";
 
@@ -28,7 +29,7 @@ export default function ClientVerificationDialog({ profile, user, onUpdate }) {
             const requestCode = `VER-${new Date().getFullYear()}-${Math.floor(Math.random() * 100000)}`;
             
             // Create verification request
-            await base44.entities.VerificationRequest.create({
+            await VerificationRequest.create({
                 request_code: requestCode,
                 client_id: user.id,
                 profile_id: profile.id,
@@ -38,11 +39,11 @@ export default function ClientVerificationDialog({ profile, user, onUpdate }) {
             });
 
             // Notify all admins
-            const allUsers = await base44.entities.User.list();
+            const allUsers = await User.list();
             const admins = allUsers.filter(u => u.role === 'admin');
             
             for (const admin of admins) {
-                await base44.entities.Notification.create({
+                await Notification.create({
                     user_id: admin.id,
                     title: "Nouvelle demande de vérification client",
                     message: `${user.full_name} (${user.email}) demande une vérification d'identité. Code: ${requestCode}`,
@@ -200,3 +201,4 @@ export default function ClientVerificationDialog({ profile, user, onUpdate }) {
         </Dialog>
     );
 }
+

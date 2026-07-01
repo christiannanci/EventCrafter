@@ -1,5 +1,6 @@
+﻿import { Service, VendorProfile, ClientProfile, Booking, Event, Conversation, Message, Review, Notification, Membership, Invoice, Region, Departement, Ville, Quartier, Fonction, PlatformFeedback, Contract, Dispute, Lead, Transaction, Payout, Refund, AppUser, Country, ServiceType } from '@/api/entities';
 import React, { useState } from 'react';
-import { base44 } from "@/api/base44Client";
+
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
@@ -32,12 +33,12 @@ export default function PlatformRatingDialog({ open, onOpenChange, user }) {
     
     try {
       // Determine user role
-      const vendorProfile = await base44.entities.VendorProfile.filter({ user_id: user.id }).then(p => p[0]);
-      const clientProfile = await base44.entities.ClientProfile.filter({ user_id: user.id }).then(p => p[0]);
+      const vendorProfile = await VendorProfile.filter({ user_id: user.id }).then(p => p[0]);
+      const clientProfile = await ClientProfile.filter({ user_id: user.id }).then(p => p[0]);
       
       const userRole = vendorProfile ? 'provider' : clientProfile ? 'client' : 'admin';
 
-      await base44.entities.PlatformFeedback.create({
+      await PlatformFeedback.create({
         user_id: user.id,
         user_role: userRole,
         feedback_type: feedbackType,
@@ -191,3 +192,4 @@ export default function PlatformRatingDialog({ open, onOpenChange, user }) {
     </Dialog>
   );
 }
+

@@ -1,6 +1,7 @@
+﻿import { Service, VendorProfile, ClientProfile, Booking, Event, Conversation, Message, Review, Notification, Membership, Invoice, Region, Departement, Ville, Quartier, Fonction, PlatformFeedback, Contract, Dispute, Lead, Transaction, Payout, Refund, AppUser, Country, ServiceType } from '@/api/entities';
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { base44 } from "@/api/base44Client";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { CheckCircle2, FileSignature, CreditCard, Loader2, Download, AlertCircle } from "lucide-react";
@@ -50,17 +51,17 @@ export default function SubscriptionCheckout() {
     }, [membershipId]);
 
     const fetchData = async (id) => {
-        const mems = await base44.entities.Membership.filter({ id });
+        const mems = await Membership.filter({ id });
         if (mems.length === 0) return;
         setMembership(mems[0]);
 
         if (mems[0].contract_id) {
-            const contracts = await base44.entities.Contract.filter({ id: mems[0].contract_id });
+            const contracts = await Contract.filter({ id: mems[0].contract_id });
             if (contracts.length > 0) setContract(contracts[0]);
         }
 
         if (mems[0].invoice_id) {
-            const invoices = await base44.entities.Invoice.filter({ id: mems[0].invoice_id });
+            const invoices = await Invoice.filter({ id: mems[0].invoice_id });
             if (invoices.length > 0) setInvoice(invoices[0]);
         }
     };
@@ -68,7 +69,7 @@ export default function SubscriptionCheckout() {
     const handleSignContract = async () => {
         setSigning(true);
         try {
-            await base44.entities.Contract.update(contract.id, {
+            await Contract.update(contract.id, {
                 status: 'signed',
                 client_signed_at: new Date().toISOString(),
                 // Auto-sign by platform as provider? In this context, User is the "Client" of the platform.
@@ -77,7 +78,7 @@ export default function SubscriptionCheckout() {
                 signed_date: new Date().toISOString()
             });
             
-            await base44.entities.Membership.update(membership.id, {
+            await Membership.update(membership.id, {
                 status: 'pending_payment'
             });
 
@@ -94,7 +95,7 @@ export default function SubscriptionCheckout() {
     const handlePaymentComplete = async () => {
         try {
             // La preuve de paiement a été soumise - attendre validation admin
-            await base44.entities.Membership.update(membership.id, {
+            await Membership.update(membership.id, {
                 status: 'pending_validation'
             });
 
@@ -264,3 +265,4 @@ export default function SubscriptionCheckout() {
         </div>
     );
 }
+

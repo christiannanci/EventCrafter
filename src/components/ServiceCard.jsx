@@ -1,3 +1,4 @@
+﻿import { Service, VendorProfile, ClientProfile, Booking, Event, Conversation, Message, Review, Notification, Membership, Invoice, Region, Departement, Ville, Quartier, Fonction, PlatformFeedback, Contract, Dispute, Lead, Transaction, Payout, Refund, AppUser, Country, ServiceType } from '@/api/entities';
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -8,7 +9,7 @@ import { createPageUrl } from '../utils';
 import { useLanguage } from '@/components/LanguageContext';
 import { useLocationContext } from '@/components/LocationContext';
 import { useCurrency } from '@/components/CurrencyContext';
-import { base44 } from "@/api/base44Client";
+
 import { useToast } from "@/components/ui/use-toast";
 
 export default function ServiceCard({ service, eventId, isTopRated, position }) {
@@ -55,7 +56,7 @@ export default function ServiceCard({ service, eventId, isTopRated, position }) 
       setAdding(true);
       try {
         const user = await base44.auth.me();
-        const event = await base44.entities.Event.filter({ id: eventId });
+        const event = await Event.filter({ id: eventId });
         
         if (!event || !Array.isArray(event) || event.length === 0) {
           toast({ title: "Erreur", description: "Événement introuvable", variant: "destructive" });
@@ -63,7 +64,7 @@ export default function ServiceCard({ service, eventId, isTopRated, position }) 
         }
 
         // Créer une réservation pour cet événement
-        await base44.entities.Booking.create({
+        await Booking.create({
           event_id: eventId,
           service_id: service.id,
           planner_id: service.planner_id,
@@ -78,7 +79,7 @@ export default function ServiceCard({ service, eventId, isTopRated, position }) 
         });
 
         // Notifier le vendeur
-        await base44.entities.Notification.create({
+        await Notification.create({
           user_id: service.planner_id,
           title: "📋 Nouvelle demande de réservation",
           message: `${user.full_name || user.email} souhaite réserver votre service "${service.title}" pour ${event[0].title}`,
@@ -323,3 +324,4 @@ export default function ServiceCard({ service, eventId, isTopRated, position }) 
     </Link>
   );
 }
+

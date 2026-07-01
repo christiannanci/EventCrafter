@@ -1,5 +1,6 @@
+﻿import { Service, VendorProfile, ClientProfile, Booking, Event, Conversation, Message, Review, Notification, Membership, Invoice, Region, Departement, Ville, Quartier, Fonction, PlatformFeedback, Contract, Dispute, Lead, Transaction, Payout, Refund, AppUser, Country, ServiceType } from '@/api/entities';
 import React, { useState, useEffect } from 'react';
-import { base44 } from "@/api/base44Client";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Check, Star, Zap, Shield } from "lucide-react";
@@ -22,7 +23,7 @@ export default function Pricing() {
         setUser(currentUser);
         
         // Fetch Membership Types dynamically
-        const types = await base44.entities.MembershipType.list();
+        const types = await MembershipType.list();
         // Fallback to static if empty or error (optional, but good for stability during dev)
         if (types.length > 0) {
             setPlans(types.map(t => ({
@@ -44,7 +45,7 @@ export default function Pricing() {
         }
 
         // Fetch vendor profile
-        const profiles = await base44.entities.VendorProfile.list();
+        const profiles = await VendorProfile.list();
         const myProfile = profiles.find(p => p.user_id === currentUser.id);
         if (myProfile) {
           setCurrentPlan(myProfile.plan);
@@ -72,16 +73,16 @@ export default function Pricing() {
       try {
         if (price === 0) {
              // Free plan flow (Immediate activation)
-             const profiles = await base44.entities.VendorProfile.list();
+             const profiles = await VendorProfile.list();
              const myProfile = profiles.find(p => p.user_id === user.id);
              
              if (myProfile) {
-               await base44.entities.VendorProfile.update(myProfile.id, {
+               await VendorProfile.update(myProfile.id, {
                  plan: plan,
                  subscription_status: "active"
                });
              } else {
-               await base44.entities.VendorProfile.create({
+               await VendorProfile.create({
                  user_id: user.id,
                  plan: plan,
                  subscription_status: "active",
@@ -98,7 +99,7 @@ export default function Pricing() {
         const endDate = new Date(new Date().setMonth(new Date().getMonth() + 1));
         
         // 1. Create Membership (Pending)
-        const membership = await base44.entities.Membership.create({
+        const membership = await Membership.create({
             user_id: user.id,
             membership_type_code: plan,
             start_date: startDate.toISOString(),
@@ -110,7 +111,7 @@ export default function Pricing() {
         });
 
         // 2. Generate Contract
-        const contract = await base44.entities.Contract.create({
+        const contract = await Contract.create({
              contract_number: `CTR-SUB-${Date.now()}`,
              membership_id: membership.id,
              type: 'subscription',
@@ -122,7 +123,7 @@ export default function Pricing() {
         });
 
         // 3. Generate Invoice
-        const invoice = await base44.entities.Invoice.create({
+        const invoice = await Invoice.create({
              invoice_number: `INV-SUB-${Date.now()}`,
              membership_id: membership.id,
              contract_id: contract.id,
@@ -141,7 +142,7 @@ export default function Pricing() {
         });
 
         // 4. Link everything to membership
-        await base44.entities.Membership.update(membership.id, {
+        await Membership.update(membership.id, {
             contract_id: contract.id,
             invoice_id: invoice.id
         });
@@ -217,3 +218,4 @@ export default function Pricing() {
     </div>
   );
 }
+

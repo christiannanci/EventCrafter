@@ -1,4 +1,5 @@
-﻿import React, { useState } from 'react';
+﻿import { Service, VendorProfile, ClientProfile, Booking, Event, Conversation, Message, Review, Notification, Membership, Invoice, Region, Departement, Ville, Quartier, Fonction, PlatformFeedback, Contract, Dispute, Lead, Transaction, Payout, Refund, AppUser, Country, ServiceType } from '@/api/entities';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -32,7 +33,7 @@ export default function Support() {
       const user = await base44.auth.me().catch(() => null);
 
       // Créer un ticket support
-      await base44.entities.PlatformFeedback.create({
+      await PlatformFeedback.create({
         user_id: user?.id || 'anonymous',
         feedback_type: 'support_request',
         category: formData.category,
@@ -244,3 +245,5 @@ export default function Support() {
     </div>
   );
 }
+
+

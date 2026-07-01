@@ -1,5 +1,6 @@
+﻿import { Service, VendorProfile, ClientProfile, Booking, Event, Conversation, Message, Review, Notification, Membership, Invoice, Region, Departement, Ville, Quartier, Fonction, PlatformFeedback, Contract, Dispute, Lead, Transaction, Payout, Refund, AppUser, Country, ServiceType } from '@/api/entities';
 import React, { useState, useEffect, useRef } from 'react';
-import { base44 } from "@/api/base44Client";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -66,7 +67,7 @@ export default function Chat() {
         // OPTIMIZED: Load only 20 most recent conversations
         let myConvs = [];
         try {
-          const allConvs = await base44.entities.Conversation.list('-last_message_at', 20);
+          const allConvs = await Conversation.list('-last_message_at', 20);
           myConvs = allConvs.filter(c => c.participants && c.participants.includes(user.id));
           myConvs.sort((a, b) => new Date(b.last_message_at || b.updated_date) - new Date(a.last_message_at || a.updated_date));
         } catch (convError) {
@@ -81,15 +82,15 @@ export default function Chat() {
         let allClientProfiles = [];
         
         try {
-          allUsers = await base44.entities.User.list();
+          allUsers = await User.list();
         } catch (e) { console.warn("Could not load users:", e); }
         
         try {
-          allVendorProfiles = await base44.entities.VendorProfile.list();
+          allVendorProfiles = await VendorProfile.list();
         } catch (e) { console.warn("Could not load vendor profiles:", e); }
         
         try {
-          allClientProfiles = await base44.entities.ClientProfile.list();
+          allClientProfiles = await ClientProfile.list();
         } catch (e) { console.warn("Could not load client profiles:", e); }
         
         const names = {};
@@ -124,7 +125,7 @@ export default function Chat() {
           
           if (!targetConv) {
             // Create new conversation
-            targetConv = await base44.entities.Conversation.create({
+            targetConv = await Conversation.create({
               participants: [user.id, targetUserId],
               last_message: "",
               last_message_at: new Date().toISOString()
@@ -159,7 +160,7 @@ export default function Chat() {
 
     const fetchMessages = async () => {
       // OPTIMIZED: Limit to 100 most recent messages
-      const msgs = await base44.entities.Message.filter({ conversation_id: activeConversation.id });
+      const msgs = await Message.filter({ conversation_id: activeConversation.id });
       msgs.sort((a, b) => new Date(a.created_date) - new Date(b.created_date));
       // Keep only last 100 messages
       const recentMsgs = msgs.slice(-100);
@@ -168,7 +169,7 @@ export default function Chat() {
       
       // Try to find a related booking for contract access
       if (activeConversation.service_id && currentUser) {
-        const bookings = await base44.entities.Booking.filter({ service_id: activeConversation.service_id });
+        const bookings = await Booking.filter({ service_id: activeConversation.service_id });
         const userBooking = bookings.find(b => 
           b.planner_id === currentUser.id || b.created_by === currentUser.email
         );
@@ -179,7 +180,7 @@ export default function Chat() {
     fetchMessages();
     
     // Real-time subscription for new messages
-    const unsubscribe = base44.entities.Message.subscribe((event) => {
+    const unsubscribe = Message.subscribe((event) => {
       if (event.type === 'create' && event.data.conversation_id === activeConversation.id) {
         setMessages(prev => {
           const exists = prev.find(m => m.id === event.data.id);
@@ -219,7 +220,7 @@ export default function Chat() {
 
     try {
       // Send message
-      await base44.entities.Message.create({
+      await Message.create({
         conversation_id: activeConversation.id,
         sender_id: currentUser.id,
         content: messageContent,
@@ -227,7 +228,7 @@ export default function Chat() {
       });
 
       // Update conversation last message
-      await base44.entities.Conversation.update(activeConversation.id, {
+      await Conversation.update(activeConversation.id, {
         last_message: messageContent,
         last_message_at: new Date().toISOString()
       });
@@ -241,7 +242,7 @@ export default function Chat() {
       // Send notifications asynchronously (don't block UI)
       (async () => {
         try {
-          const allUsers = await base44.entities.User.list();
+          const allUsers = await User.list();
           const otherParticipants = activeConversation.participants.filter(id => id !== currentUser.id);
 
           // Notify other participants
@@ -429,3 +430,4 @@ export default function Chat() {
     </div>
   );
 }
+
