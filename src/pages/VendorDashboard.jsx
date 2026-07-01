@@ -1,4 +1,5 @@
-﻿import { Service, VendorProfile, ClientProfile, Booking, Event, Conversation, Message, Review, Notification, Membership, Invoice, Region, Departement, Ville, Quartier, Fonction, PlatformFeedback, Contract, Dispute, Lead, Transaction, Payout, Refund, AppUser, Country, ServiceType } from '@/api/entities';
+﻿import { supabase } from '@/api/base44Client';
+import { Service, VendorProfile, ClientProfile, Booking, Event, Conversation, Message, Review, Notification, Membership, Invoice, Region, Departement, Ville, Quartier, Fonction, PlatformFeedback, Contract, Dispute, Lead, Transaction, Payout, Refund, AppUser, Country, ServiceType } from '@/api/entities';
 import React, { useState, useEffect } from 'react';
 
 import { Button } from "@/components/ui/button";
@@ -128,7 +129,7 @@ export default function VendorDashboard() {
   useEffect(() => {
     const init = async () => {
       try {
-        const currentUser = await base44.auth.me();
+        const currentUser = await supabase.auth.getUser().then(r => r.data?.user);
         setUser(currentUser);
         
         checkAndGrantAutoRewards(currentUser.id).catch(err => 
@@ -139,7 +140,7 @@ export default function VendorDashboard() {
           console.warn('Performance reward check failed:', err)
         );
       } catch (e) {
-        base44.auth.redirectToLogin();
+        window.location.href = "/Login";
       }
     };
     init();
@@ -1018,5 +1019,6 @@ export default function VendorDashboard() {
     </div>
   );
 }
+
 
 
