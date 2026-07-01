@@ -12,6 +12,7 @@ class SupabaseQuery {
   async list(options = {}) {
     let q = supabase.from(this.tableName).select('*');
     if (options.limit) q = q.limit(options.limit);
+    if (options.sort) q = q.order(options.sort.field, { ascending: options.sort.direction !== 'desc' });
     const { data, error } = await q;
     if (error) throw error;
     return data || [];
@@ -66,11 +67,6 @@ export const Payout = new SupabaseQuery('payout');
 export const Refund = new SupabaseQuery('refund');
 export const AppUser = new SupabaseQuery('app_user');
 export const VendorReview = new SupabaseQuery('review');
-export const MembershipType = new SupabaseQuery('membership');
+export const MembershipType = new SupabaseQuery('membership_type');
 export const ServiceRequest = new SupabaseQuery('service_request');
 export const LeadUnlock = new SupabaseQuery('lead_unlock');
-export const VendorReview = new SupabaseQuery('review');
-export const MembershipType = new SupabaseQuery('membership_type');
-
-
-
