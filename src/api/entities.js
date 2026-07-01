@@ -68,5 +68,9 @@ export const AppUser = new SupabaseQuery('app_user');
 export const VendorReview = new SupabaseQuery('review');
 export const MembershipType = new SupabaseQuery('membership');
 export const ServiceRequest = new SupabaseQuery('service_request');
+export const LeadUnlock = new SupabaseQuery('lead_unlock');
+export const VendorReview = new SupabaseQuery('review');
+export const MembershipType = new SupabaseQuery('membership_type');
+
 
 
