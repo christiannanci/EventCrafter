@@ -67,6 +67,6 @@ export const Refund = new SupabaseQuery('refund');
 export const AppUser = new SupabaseQuery('app_user');
 export const VendorReview = new SupabaseQuery('review');
 export const MembershipType = new SupabaseQuery('membership');
-export const Conversation = new SupabaseQuery('conversation');
 export const ServiceRequest = new SupabaseQuery('service_request');
+
 
