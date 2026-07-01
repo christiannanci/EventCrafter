@@ -162,67 +162,13 @@ export default function VendorDashboard() {
   useEffect(() => {
     if (!user || !myServices) return;
 
-    const unsubscribe = Lead.subscribe(async (event) => {
-      if (event.type === 'create' && event.data.status === 'open') {
-        const newLead = event.data;
-        const categoryMatch = newLead.service_category === 'All' || 
-                             myServices.some(s => s.category === newLead.service_category);
-        
-        if (categoryMatch) {
-          if (membershipStatus === 'free') {
-            const startOfMonth = new Date();
-            startOfMonth.setDate(1);
-            startOfMonth.setHours(0, 0, 0, 0);
-            
-            setLeads(prev => {
-              const leadsThisMonth = prev.filter(lead => 
-                new Date(lead.created_date) >= startOfMonth
-              );
-              
-              if (leadsThisMonth.length < 10) {
-                return [newLead, ...prev];
-              }
-              return prev;
-            });
-          } else {
-            setLeads(prev => [newLead, ...prev]);
-          }
-        }
-      }
-    });
-
-    return () => unsubscribe();
+    
   }, [user, myServices, membershipStatus]);
 
   useEffect(() => {
     if (!user) return;
 
-    const unsubscribe = Booking.subscribe(async (event) => {
-      if (event.type === 'create' && event.data.planner_id === user.id) {
-        const newBooking = event.data;
-        
-        setBookings(prev => [newBooking, ...prev]);
-        
-        await NotificationService.sendToVendor({
-          vendorId: user.id,
-          title: "Nouvelle Réservation",
-          message: `Vous avez reçu une nouvelle réservation de ${newBooking.client_name || 'un client'} pour le ${new Date(newBooking.event_date).toLocaleDateString('fr-FR')}. Montant: ${newBooking.total_amount?.toLocaleString() || 'À négocier'} FCFA`,
-          type: "booking",
-          link: "/VendorDashboard?tab=bookings_received"
-        });
-
-        toast({ 
-          title: "🎉 Nouvelle Réservation !",
-          description: `${newBooking.client_name || 'Un client'} a réservé pour le ${new Date(newBooking.event_date).toLocaleDateString('fr-FR')}`
-        });
-      }
-
-      if (event.type === 'update' && event.data.planner_id === user.id) {
-        setBookings(prev => prev.map(b => b.id === event.id ? event.data : b));
-      }
-    });
-
-    return () => unsubscribe();
+    
   }, [user]);
 
   const handleMediaUpload = async (e) => {
@@ -1019,6 +965,7 @@ export default function VendorDashboard() {
     </div>
   );
 }
+
 
 
 
