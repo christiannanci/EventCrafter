@@ -84,7 +84,7 @@ export default function ClientDashboard() {
   useEffect(() => {
     const init = async () => {
       try {
-        const currentUser = await base44.auth.me();
+        const currentUser = await supabase.auth.getUser().then(r => r.data?.user);
         setUser(currentUser);
         
         if (currentUser) {
@@ -1016,4 +1016,5 @@ export default function ClientDashboard() {
     </div>
   );
 }
+
 
