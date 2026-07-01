@@ -1,4 +1,4 @@
-﻿import { Service, VendorProfile, ClientProfile, Booking, Event, Conversation, Message, Review, Notification, Membership, Invoice, Region, Departement, Ville, Quartier, Fonction, PlatformFeedback, Contract, Dispute, Lead, Transaction, Payout, Refund, AppUser, Country, ServiceType } from '@/api/entities';
+﻿import { Service, VendorProfile as VendorProfileEntity, ClientProfile, Booking, Event, Conversation, Message, Review, Notification, Membership, Invoice, Region, Departement, Ville, Quartier, Fonction, PlatformFeedback, Contract, Dispute, Lead, Transaction, Payout, Refund, AppUser, Country, ServiceType } from '@/api/entities';
 import React, { useState, useEffect } from 'react';
 
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -22,7 +22,7 @@ export default function VendorProfile() {
         const currentUser = await base44.auth.me();
         setUser(currentUser);
         
-        const profiles = await VendorProfile.filter({ user_id: currentUser.id });
+        const profiles = await VendorProfileEntity.filter({ user_id: currentUser.id });
         if (profiles.length > 0) {
           setVendorProfile(profiles[0]);
         }
@@ -37,7 +37,7 @@ export default function VendorProfile() {
 
   const refetchProfile = async () => {
     if (!user) return;
-    const profiles = await VendorProfile.filter({ user_id: user.id });
+    const profiles = await VendorProfileEntity.filter({ user_id: user.id });
     if (profiles.length > 0) {
       setVendorProfile(profiles[0]);
     }
@@ -91,7 +91,7 @@ export default function VendorProfile() {
                   const urls = results.map(r => r.file_url);
                   
                   const currentDocs = vendorProfile.verification_docs || [];
-                  await VendorProfile.update(vendorProfile.id, {
+                  await VendorProfileEntity.update(vendorProfile.id, {
                     verification_docs: [...currentDocs, ...urls]
                   });
                   
@@ -186,5 +186,6 @@ export default function VendorProfile() {
     </div>
   );
 }
+
 
 
