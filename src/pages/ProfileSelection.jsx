@@ -14,15 +14,19 @@ export default function ProfileSelection() {
   const [checking, setChecking] = useState(true);
   const [step, setStep] = useState(1);
   const { toast } = useToast();
+  const [clientData, setClientData] = useState({ first_name: "", last_name: "", phone: "", whatsapp: "" });
+  const [vendorData, setVendorData] = useState({ business_name: "", phone: "", city: "" });
 
   React.useEffect(() => {
     const checkProfiles = async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session?.user) {
           setChecking(false);
           return;
         }
+        const user = session.user;
         const vendorProfiles = await VendorProfile.filter({ user_id: user.id });
         const clientProfiles = await ClientProfile.filter({ user_id: user.id });
         if (vendorProfiles.length > 0) {
@@ -41,17 +45,16 @@ export default function ProfileSelection() {
     checkProfiles();
   }, []);
 
-  const [clientData, setClientData] = useState({ first_name: "", last_name: "", phone: "", whatsapp: "" });
-  const [vendorData, setVendorData] = useState({ business_name: "", phone: "", city: "" });
-
   const handleCreateProfile = async () => {
     setLoading(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Utilisateur non connecté');
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) throw new Error('Utilisateur non connecté');
+      const user = session.user;
 
       if (selectedType === 'client') {
         await ClientProfile.create({
+          id: crypto.randomUUID(),
           user_id: user.id,
           first_name: clientData.first_name,
           last_name: clientData.last_name,
@@ -65,6 +68,7 @@ export default function ProfileSelection() {
         window.location.href = '/ClientDashboard';
       } else {
         await VendorProfile.create({
+          id: crypto.randomUUID(),
           user_id: user.id,
           business_name: vendorData.business_name,
           phone: vendorData.phone,
