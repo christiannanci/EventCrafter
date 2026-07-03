@@ -1,7 +1,7 @@
 ﻿import { Service, VendorProfile, ClientProfile, Booking, Event, Conversation, Message, Review, Notification, Membership, Invoice, Region, Departement, Ville, Quartier, Fonction, PlatformFeedback, Contract, Dispute, Lead, Transaction, Payout, Refund, AppUser, Country, ServiceType } from '@/api/entities';
 import React, { useState, useEffect } from 'react';
 
-import { Service, VendorProfile, ... } from '@/api/entities';
+import { VendorReview } from '@/api/entities';
 
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -141,4 +141,5 @@ export default function VendorReviewsDisplay({ vendorUserId }) {
     </Card>
   );
 }
+
 
