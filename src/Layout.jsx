@@ -60,7 +60,7 @@ function LayoutContent({ children }) {
     
     const checkUser = async () => {
       try {
-        const currentUser = await base44.auth.me();
+        const currentUser = await supabase.auth.getUser().then(r => r.data?.user);
         
         if (!mounted) return;
         
@@ -100,7 +100,7 @@ function LayoutContent({ children }) {
   }, []);
 
   const handleLogout = async () => {
-    await base44.auth.logout('/');
+    await supabase.auth.signOut(); window.location.href = "/";
   };
 
   const navLinks = React.useMemo(() => [
@@ -466,5 +466,7 @@ export default function Layout({ children }) {
     </ErrorBoundary>
   );
 }
+
+
 
 
