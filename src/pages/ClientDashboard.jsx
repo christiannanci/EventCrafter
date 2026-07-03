@@ -96,6 +96,7 @@ export default function ClientDashboard() {
         }
       } catch (e) {
         console.error('Auth error:', e);
+      }
     };
     init();
   }, []);
