@@ -1,4 +1,5 @@
-﻿import { Service, VendorProfile, ClientProfile, Booking, Event, Conversation, Message, Review, Notification, Membership, Invoice, Region, Departement, Ville, Quartier, Fonction, PlatformFeedback, Contract, Dispute, Lead, Transaction, Payout, Refund, AppUser, Country, ServiceType } from '@/api/entities';
+﻿import { supabase } from '@/api/base44Client';
+import { VendorProfile, ClientProfile } from '@/api/entities';
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -466,6 +467,7 @@ export default function Layout({ children }) {
     </ErrorBoundary>
   );
 }
+
 
 
 
