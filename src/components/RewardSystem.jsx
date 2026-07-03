@@ -1,4 +1,4 @@
-﻿import { Service, VendorProfile, ClientProfile, Booking, Event, Conversation, Message, Review, Notification, Membership, Invoice, Region, Departement, Ville, Quartier, Fonction, PlatformFeedback, Contract, Dispute, Lead, Transaction, Payout, Refund, AppUser, Country, ServiceType } from '@/api/entities';
+﻿import { Service, VendorProfile, ClientProfile, Booking, Event, Conversation, Message, Review, Notification, Membership, Invoice, Region, Departement, Ville, Quartier, Fonction, PlatformFeedback, Contract, Dispute, Lead, Transaction, Payout, Refund, AppUser, Country, ServiceType, VendorReview } from '@/api/entities';
 /**
  * RN4: Système de récompenses ($2-$5 ou 1 crédit lead gratuit)
  */
@@ -168,4 +168,5 @@ export const useRewardCredit = async (vendorId) => {
     return { success: false, error: error.message };
   }
 };
+
 
