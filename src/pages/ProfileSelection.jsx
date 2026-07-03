@@ -1,4 +1,5 @@
 ﻿import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/api/base44Client';
 import { VendorProfile, ClientProfile } from '@/api/entities';
 import { Button } from "@/components/ui/button";
@@ -14,6 +15,7 @@ export default function ProfileSelection() {
   const [checking, setChecking] = useState(true);
   const [step, setStep] = useState(1);
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [clientData, setClientData] = useState({ first_name: "", last_name: "", phone: "", whatsapp: "" });
   const [vendorData, setVendorData] = useState({ business_name: "", phone: "", city: "" });
 
@@ -30,11 +32,11 @@ export default function ProfileSelection() {
         const vendorProfiles = await VendorProfile.filter({ user_id: user.id });
         const clientProfiles = await ClientProfile.filter({ user_id: user.id });
         if (vendorProfiles.length > 0) {
-          window.location.href = '/VendorDashboard';
+          navigate('/VendorDashboard');
           return;
         }
         if (clientProfiles.length > 0) {
-          window.location.href = '/ClientDashboard';
+          navigate('/ClientDashboard');
           return;
         }
         setChecking(false);
@@ -65,7 +67,8 @@ export default function ProfileSelection() {
           account_balance: 0
         });
         toast({ title: "Profil Client créé!", description: "Bienvenue sur EventCrafter" });
-        window.location.href = '/ClientDashboard';
+        await new Promise(resolve => setTimeout(resolve, 500));
+        navigate('/ClientDashboard');
       } else {
         await VendorProfile.create({
           id: crypto.randomUUID(),
@@ -79,7 +82,8 @@ export default function ProfileSelection() {
           account_balance: 0
         });
         toast({ title: "Profil Vendeur créé!", description: "Commencez à lister vos services" });
-        window.location.href = '/VendorDashboard';
+        await new Promise(resolve => setTimeout(resolve, 500));
+        navigate('/VendorDashboard');
       }
     } catch (error) {
       console.error("Error creating profile:", error);

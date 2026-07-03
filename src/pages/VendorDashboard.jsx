@@ -292,7 +292,7 @@ export default function VendorDashboard() {
           spoken_languages: [], religious_compatibility: [], diaspora_ready: false
       });
       refetch();
-    } catch (error) {
+    } catch (error) { 
       console.error("Error creating/updating service", error);
       toast({ 
         title: "Erreur de sauvegarde", 

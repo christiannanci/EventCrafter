@@ -95,8 +95,7 @@ export default function ClientDashboard() {
           }
         }
       } catch (e) {
-        window.location.href = '/login';
-      }
+        console.error('Auth error:', e);
     };
     init();
   }, []);
@@ -1016,5 +1015,6 @@ export default function ClientDashboard() {
     </div>
   );
 }
+
 
 

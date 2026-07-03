@@ -6,34 +6,14 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { createPageUrl } from './utils';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { 
-  CalendarHeart, 
-  Search, 
-  Menu, 
-  X,
-  LayoutDashboard,
-  Globe,
-  Shield
-} from "lucide-react";
-
+import { Search, Menu, X, LayoutDashboard, Globe, Shield } from "lucide-react";
 import { LanguageProvider, useLanguage } from '@/components/LanguageContext';
 import { LocationProvider, useLocationContext } from '@/components/LocationContext';
 import { CurrencyProvider } from '@/components/CurrencyContext';
 import { UserProvider } from '@/components/UserContext';
 import QueryProvider from '@/components/QueryProvider';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import NotificationBell from '@/components/NotificationBell';
 import CartIconNav from '@/components/CartIconNav';
 import CurrencySelector from '@/components/CurrencySelector';
@@ -58,50 +38,39 @@ function LayoutContent({ children }) {
 
   React.useEffect(() => {
     let mounted = true;
-    
     const checkUser = async () => {
       try {
         const currentUser = await supabase.auth.getUser().then(r => r.data?.user);
-        
         if (!mounted) return;
-        
+        if (!currentUser) { setIsLoading(false); return; }
         setUser(currentUser);
-
-        // Paralléliser les deux requêtes profil
         const [vendorProfiles, clientProfiles] = await Promise.all([
           VendorProfile.filter({ user_id: currentUser.id }),
           ClientProfile.filter({ user_id: currentUser.id })
         ]);
-        
         if (!mounted) return;
-        
         setHasVendorProfile(vendorProfiles.length > 0);
         setHasClientProfile(clientProfiles.length > 0);
-
-        // Initialiser les notifications en arrière-plan (non-bloquant)
-        import('@/components/RealtimeNotificationSystem').then(({ realtimeNotifications }) => {
-          if (mounted) realtimeNotifications.initialize(currentUser.id, currentUser.role);
-        }).catch(() => {});
       } catch (e) {
         if (!mounted) return;
         setUser(null);
         setHasVendorProfile(false);
         setHasClientProfile(false);
       } finally {
-        if (mounted) {
-          setIsLoading(false);
-        }
+        if (mounted) setIsLoading(false);
       }
     };
     checkUser();
-
-    return () => {
-      mounted = false;
-    };
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) { checkUser(); }
+      else { setUser(null); setHasVendorProfile(false); setHasClientProfile(false); }
+    });
+    return () => { mounted = false; subscription.unsubscribe(); };
   }, []);
 
   const handleLogout = async () => {
-    await supabase.auth.signOut(); window.location.href = "/";
+    await supabase.auth.signOut();
+    window.location.href = "/";
   };
 
   const navLinks = React.useMemo(() => [
@@ -111,7 +80,6 @@ function LayoutContent({ children }) {
     { name: "Post Request", path: "/PostRequest", icon: null },
   ], [t]);
 
-  // Add Dashboard to main nav if user has client or vendor profile
   const clientNavLinks = React.useMemo(() => {
     let mainNavLinks = [...navLinks];
     if (hasClientProfile) {
@@ -134,13 +102,9 @@ function LayoutContent({ children }) {
       <Toaster />
       <SonnerToaster />
       <ScrollToTop />
-      {/* Google Analytics removed: external scripts blocked by MTN/Orange */}
-      {/* Navigation */}
       <nav className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-[#F4C542]/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-20 items-center">
-            
-            {/* Logo */}
             <Link to="/" className="flex items-center gap-2 group">
               <span className="text-2xl font-['Poppins'] font-bold tracking-tight text-[#2C2C2C]">
                 Event<span className="text-[#FF6B35] relative">
@@ -150,19 +114,13 @@ function LayoutContent({ children }) {
               </span>
             </Link>
 
-            {/* Desktop Nav */}
             <div className="hidden md:flex items-center gap-8">
               {clientNavLinks.map((link) => (
-                <Link 
-                  key={link.path}
-                  to={createPageUrl(link.path.replace('/', ''))}
-                  className={`text-sm font-medium transition-colors hover:text-[#FF6B35] ${
-                    location.pathname === link.path ? 'text-[#FF6B35]' : 'text-[#2C2C2C]'
-                  }`}
-                >
+                <Link key={link.path} to={createPageUrl(link.path.replace('/', ''))}
+                  className={`text-sm font-medium transition-colors hover:text-[#FF6B35] ${location.pathname === link.path ? 'text-[#FF6B35]' : 'text-[#2C2C2C]'}`}>
                   {link.name}
                 </Link>
-                ))}
+              ))}
 
               {user ? (
                 <div className="flex items-center gap-3">
@@ -170,25 +128,19 @@ function LayoutContent({ children }) {
                   <CurrencySelector />
                   <CartIconNav />
                   <NotificationBell user={user} />
-
                   {(user.role === 'admin' || (user.staff_role && user.staff_role !== 'none')) && (
-                      <Link to={createPageUrl('AdminDashboard')}>
-                          <Button variant="ghost" className="text-rose-600 hover:text-rose-700 hover:bg-rose-50 border border-rose-100">
-                              <Shield className="w-4 h-4 mr-2" />
-                              Back Office
-                          </Button>
-                      </Link>
+                    <Link to={createPageUrl('AdminDashboard')}>
+                      <Button variant="ghost" className="text-rose-600 hover:text-rose-700 hover:bg-rose-50 border border-rose-100">
+                        <Shield className="w-4 h-4 mr-2" />Back Office
+                      </Button>
+                    </Link>
                   )}
-
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" className="text-sm text-stone-600 font-medium px-3 py-1.5 bg-stone-100 rounded-full hover:bg-stone-200">
                         <span className="mr-2">{user.full_name || user.email}</span>
                         {hasVendorProfile && hasClientProfile && (
-                          <>
-                            <Badge className="bg-purple-500 text-white text-[10px] px-1.5 py-0 mr-1">VENDOR</Badge>
-                            <Badge className="bg-blue-500 text-white text-[10px] px-1.5 py-0">CLIENT</Badge>
-                          </>
+                          <><Badge className="bg-purple-500 text-white text-[10px] px-1.5 py-0 mr-1">VENDOR</Badge><Badge className="bg-blue-500 text-white text-[10px] px-1.5 py-0">CLIENT</Badge></>
                         )}
                         {hasVendorProfile && !hasClientProfile && (
                           <Badge className="bg-purple-500 text-white text-[10px] px-1.5 py-0">VENDOR</Badge>
@@ -201,54 +153,49 @@ function LayoutContent({ children }) {
                     <DropdownMenuContent align="end" className="w-56">
                       {hasVendorProfile && (
                         <DropdownMenuItem asChild>
-                          <Link to={createPageUrl('VendorProfile')} className="cursor-pointer">
-                            <LayoutDashboard className="w-4 h-4 mr-2" />
-                            Mon Profil
+                          <Link to={createPageUrl('VendorDashboard')} className="cursor-pointer">
+                            <LayoutDashboard className="w-4 h-4 mr-2" />Dashboard Vendeur
                           </Link>
                         </DropdownMenuItem>
                       )}
                       {hasClientProfile && (
                         <DropdownMenuItem asChild>
-                          <Link to={createPageUrl('ClientDashboard') + '?tab=client_profile'} className="cursor-pointer">
-                            <LayoutDashboard className="w-4 h-4 mr-2" />
-                            Mon Profil
+                          <Link to={createPageUrl('ClientDashboard')} className="cursor-pointer">
+                            <LayoutDashboard className="w-4 h-4 mr-2" />Dashboard Client
                           </Link>
                         </DropdownMenuItem>
                       )}
+                      {hasVendorProfile && (
+                        <DropdownMenuItem asChild>
+                          <Link to={createPageUrl('VendorProfile')} className="cursor-pointer">
+                            <LayoutDashboard className="w-4 h-4 mr-2" />Mon Profil Vendeur
+                          </Link>
+                        </DropdownMenuItem>
+                      )}
+                     
                       {(hasVendorProfile || hasClientProfile) && <div className="border-t my-1" />}
-
                       {countries.length > 0 && (
                         <div className="px-2 py-2">
                           <p className="text-xs text-stone-500 mb-2">Pays</p>
                           <Select value={selectedCountry || ''} onValueChange={setSelectedCountry}>
-                            <SelectTrigger className="w-full">
-                              <SelectValue placeholder="Sélectionner pays" />
-                            </SelectTrigger>
+                            <SelectTrigger className="w-full"><SelectValue placeholder="Sélectionner pays" /></SelectTrigger>
                             <SelectContent>
                               {countries.map((c) => (
-                                <SelectItem key={c.code} value={c.code}>
-                                  {c.name} ({c.code})
-                                </SelectItem>
+                                <SelectItem key={c.code} value={c.code}>{c.name} ({c.code})</SelectItem>
                               ))}
                             </SelectContent>
                           </Select>
                         </div>
                       )}
-
                       <div className="px-2 py-2 border-t">
                         <p className="text-xs text-stone-500 mb-2">Langue</p>
                         {languages.map((lang) => (
-                          <DropdownMenuItem 
-                            key={lang.code} 
-                            onClick={() => setLanguage(lang.code)}
-                            className={language === lang.code ? "bg-[#FFF0E8] text-[#FF6B35] font-medium" : ""}
-                          >
-                            <Globe className="w-4 h-4 mr-2" />
-                            {lang.label}
+                          <DropdownMenuItem key={lang.code} onClick={() => setLanguage(lang.code)}
+                            className={language === lang.code ? "bg-[#FFF0E8] text-[#FF6B35] font-medium" : ""}>
+                            <Globe className="w-4 h-4 mr-2" />{lang.label}
                           </DropdownMenuItem>
                         ))}
                       </div>
-
                       <DropdownMenuItem onClick={handleLogout} className="border-t text-red-600 focus:text-red-600">
                         {t("nav.logout")}
                       </DropdownMenuItem>
@@ -268,9 +215,7 @@ function LayoutContent({ children }) {
               )}
             </div>
 
-            {/* Mobile menu button */}
             <div className="md:hidden flex items-center gap-4">
-               {/* Language Switcher Mobile */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="icon" className="text-stone-600">
@@ -279,118 +224,104 @@ function LayoutContent({ children }) {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   {languages.map((lang) => (
-                    <DropdownMenuItem 
-                      key={lang.code} 
-                      onClick={() => setLanguage(lang.code)}
-                      className={language === lang.code ? "bg-rose-50 text-rose-600 font-medium" : ""}
-                    >
+                    <DropdownMenuItem key={lang.code} onClick={() => setLanguage(lang.code)}
+                      className={language === lang.code ? "bg-rose-50 text-rose-600 font-medium" : ""}>
                       {lang.label}
                     </DropdownMenuItem>
                   ))}
                 </DropdownMenuContent>
               </DropdownMenu>
-
-              <button
-                onClick={() => setIsMenuOpen(!isMenuOpen)}
+              <button onClick={() => setIsMenuOpen(!isMenuOpen)}
                 aria-label={isMenuOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
-                aria-expanded={isMenuOpen}
-                className="text-stone-600 hover:text-rose-600 focus:outline-none min-h-[44px] min-w-[44px] flex items-center justify-center"
-              >
+                className="text-stone-600 hover:text-rose-600 focus:outline-none min-h-[44px] min-w-[44px] flex items-center justify-center">
                 {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
               </button>
             </div>
           </div>
         </div>
 
-        {/* Mobile Nav */}
-            {isMenuOpen && (
-              <div className="md:hidden bg-white border-b border-[#F4C542]/20 animate-in slide-in-from-top-5">
-                <div className="px-4 pt-2 pb-6 space-y-2">
-                  {clientNavLinks.map((link) => (
-                <Link
-                  key={link.path}
-                  to={createPageUrl(link.path.replace('/', ''))}
+        {isMenuOpen && (
+          <div className="md:hidden bg-white border-b border-[#F4C542]/20 animate-in slide-in-from-top-5">
+            <div className="px-4 pt-2 pb-6 space-y-2">
+              {clientNavLinks.map((link) => (
+                <Link key={link.path} to={createPageUrl(link.path.replace('/', ''))}
                   className="block px-3 py-3 text-base font-medium text-[#2C2C2C] hover:text-[#FF6B35] hover:bg-[#FFF0E8] rounded-md"
-                  onClick={() => setIsMenuOpen(false)}
-                >
+                  onClick={() => setIsMenuOpen(false)}>
                   {link.name}
                 </Link>
               ))}
-               {user ? (
+              {user ? (
                 <>
                   {hasVendorProfile && (
-                    <Link 
-                      to={createPageUrl('VendorProfile')}
-                      className="flex items-center gap-2 px-3 py-3 text-base font-medium text-[#2C2C2C] hover:text-[#FF6B35] hover:bg-[#FFF0E8] rounded-md"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      <LayoutDashboard className="w-4 h-4" />
-                      Mon Profil
+                    <Link to={createPageUrl('VendorDashboard')}
+                      className="flex items-center gap-2 px-3 py-3 text-base font-medium text-purple-600 hover:bg-purple-50 rounded-md"
+                      onClick={() => setIsMenuOpen(false)}>
+                      <LayoutDashboard className="w-4 h-4" />Dashboard Vendeur
+                      <Badge className="bg-purple-500 text-white text-[10px] px-1.5 py-0 ml-auto">VENDOR</Badge>
                     </Link>
                   )}
                   {hasClientProfile && (
-                    <Link 
-                      to={createPageUrl('ClientDashboard') + '?tab=client_profile'}
-                      className="flex items-center gap-2 px-3 py-3 text-base font-medium text-[#2C2C2C] hover:text-[#FF6B35] hover:bg-[#FFF0E8] rounded-md"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      <LayoutDashboard className="w-4 h-4" />
-                      Mon Profil
+                    <Link to={createPageUrl('ClientDashboard')}
+                      className="flex items-center gap-2 px-3 py-3 text-base font-medium text-blue-600 hover:bg-blue-50 rounded-md"
+                      onClick={() => setIsMenuOpen(false)}>
+                      <LayoutDashboard className="w-4 h-4" />Dashboard Client
+                      <Badge className="bg-blue-500 text-white text-[10px] px-1.5 py-0 ml-auto">CLIENT</Badge>
                     </Link>
                   )}
-                  <button
-                    onClick={handleLogout}
-                    className="block w-full text-left px-3 py-3 text-base font-medium text-[#2C2C2C] hover:text-[#FF6B35] hover:bg-[#FFF0E8] rounded-md"
-                  >
+                  {hasVendorProfile && (
+                    <Link to={createPageUrl('VendorProfile')}
+                      className="flex items-center gap-2 px-3 py-3 text-base font-medium text-[#2C2C2C] hover:text-[#FF6B35] hover:bg-[#FFF0E8] rounded-md"
+                      onClick={() => setIsMenuOpen(false)}>
+                      <LayoutDashboard className="w-4 h-4" />Mon Profil Vendeur
+                    </Link>
+                  )}
+                  {hasClientProfile && (
+                    <Link to={createPageUrl('ClientDashboard') + '?tab=client_profile'}
+                      className="flex items-center gap-2 px-3 py-3 text-base font-medium text-[#2C2C2C] hover:text-[#FF6B35] hover:bg-[#FFF0E8] rounded-md"
+                      onClick={() => setIsMenuOpen(false)}>
+                      <LayoutDashboard className="w-4 h-4" />Mon Profil Client
+                    </Link>
+                  )}
+                  <button onClick={handleLogout}
+                    className="block w-full text-left px-3 py-3 text-base font-medium text-red-600 hover:bg-red-50 rounded-md">
                     {t("nav.logout")}
                   </button>
                 </>
-               ) : (
+              ) : (
                 <div className="pt-4 flex flex-col gap-3">
                   <Button onClick={() => window.location.href = "/Login"} variant="outline" className="w-full justify-center">
-                     {t("nav.signIn")}
+                    {t("nav.signIn")}
                   </Button>
                   <Button onClick={() => window.location.href = "/Login"} className="w-full justify-center bg-[#FF6B35] hover:bg-[#e05a2b] text-white">
-                     {t("nav.joinPlanner")}
+                    {t("nav.joinPlanner")}
                   </Button>
                 </div>
-               )}
+              )}
             </div>
           </div>
         )}
       </nav>
 
-      {/* Main Content */}
       <main className="flex-grow pb-16 md:pb-0">
-        {/* Back button for non-root pages */}
         {!isRootPage && (
           <div className="bg-white border-b border-stone-100 px-4 py-2 md:hidden">
-            <button
-              onClick={() => navigate(-1)}
-              className="flex items-center gap-1.5 text-sm text-stone-600 hover:text-[#FF6B35] transition-colors select-none"
-            >
+            <button onClick={() => navigate(-1)}
+              className="flex items-center gap-1.5 text-sm text-stone-600 hover:text-[#FF6B35] transition-colors select-none">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
               Retour
             </button>
           </div>
         )}
         <AnimatePresence mode="wait">
-          <motion.div
-            key={location.pathname}
-            initial={{ opacity: 0, x: 18 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -18 }}
-            transition={{ duration: 0.18, ease: 'easeInOut' }}
-          >
+          <motion.div key={location.pathname} initial={{ opacity: 0, x: 18 }} animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -18 }} transition={{ duration: 0.18, ease: 'easeInOut' }}>
             {children}
           </motion.div>
         </AnimatePresence>
       </main>
 
-      {/* Mobile Bottom Navigation */}
       <MobileBottomNav user={user} hasVendorProfile={hasVendorProfile} hasClientProfile={hasClientProfile} />
 
-      {/* Footer */}
       <footer className="bg-white border-t border-stone-200 py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
@@ -400,9 +331,7 @@ function LayoutContent({ children }) {
                   Event<span className="text-[#FF6B35]">Crafter</span>
                 </span>
               </div>
-              <p className="text-stone-500 max-w-sm">
-                The ultimate marketplace for all your event needs. From planners to photographers, we have it all.
-              </p>
+              <p className="text-stone-500 max-w-sm">The ultimate marketplace for all your event needs.</p>
             </div>
             <div>
               <h3 className="font-semibold text-[#2C2C2C] mb-4">Platform</h3>
@@ -441,8 +370,8 @@ function LayoutContent({ children }) {
             </div>
           </div>
           <div className="mt-12 pt-8 border-t border-stone-100 text-center text-stone-400 text-sm">
-          <p className="mb-2">{t('about.legalInfo')}</p>
-          © 2026 Event Crafter Marketplace. All rights reserved.
+            <p className="mb-2">{t('about.legalInfo')}</p>
+            © 2026 Event Crafter Marketplace. All rights reserved.
           </div>
         </div>
       </footer>
@@ -467,8 +396,3 @@ export default function Layout({ children }) {
     </ErrorBoundary>
   );
 }
-
-
-
-
-
