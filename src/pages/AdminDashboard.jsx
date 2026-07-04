@@ -42,13 +42,13 @@ export default function AdminDashboard() {
                 
                 if (!currentUser || (currentUser.role !== 'admin' && !hasStaffRole)) {
                     console.log('Access denied - redirecting to home');
-                    window.location.href = '/'; 
+                    window.location.href = '/Login';
                     return;
                 }
                 setUser(currentUser);
             } catch (e) {
                 console.error('Auth error:', e);
-                window.location.href = '/';
+                window.location.href = '/Login';
             } finally {
                 setLoading(false);
             }
