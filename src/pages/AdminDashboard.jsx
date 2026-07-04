@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { base44 } from "@/api/base44Client";
+﻿import React, { useState, useEffect } from 'react';
+import { supabase } from '@/api/base44Client';
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -29,7 +29,9 @@ export default function AdminDashboard() {
     useEffect(() => {
         const checkAuth = async () => {
             try {
-                const currentUser = await base44.auth.me();
+                const authUser = await supabase.auth.getUser().then(r => r.data?.user);
+                const { data: appUsers } = await supabase.from('app_user').select('*').eq('email', authUser.email).single();
+                const currentUser = { ...authUser, ...appUsers };
                 console.log('Current user in AdminDashboard:', currentUser);
                 console.log('Staff role:', currentUser?.staff_role);
                 
@@ -267,3 +269,4 @@ export default function AdminDashboard() {
         </div>
     );
 }
+
