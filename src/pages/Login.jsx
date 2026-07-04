@@ -25,9 +25,14 @@ export default function Login() {
         if (error) throw error;
         navigate('/ProfileSelection');
       } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
-        navigate('/');
+        const { data: appUser } = await supabase.from('app_user').select('role').eq('email', email).single();
+        if (appUser?.role === 'admin') {
+          navigate('/AdminDashboard');
+        } else {
+          navigate('/');
+        }
       }
     } catch (err) {
       setError(err.message);
