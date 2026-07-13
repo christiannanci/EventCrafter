@@ -1,5 +1,6 @@
 ﻿import React, { useState, useEffect } from 'react';
 
+import { base44 } from '@/api/base44Client';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -8,13 +9,13 @@ import { CheckCircle2, XCircle, MapPin, Loader2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 
 const GEO_ENTITIES = {
-    continent: base44.entities.Continent,
-    country: base44.entities.Country,
-    region: base44.entities.Region,
-    departement: base44.entities.Departement,
-    ville: base44.entities.Ville,
-    arrondissement: base44.entities.Arrondissement,
-    quartier: base44.entities.Quartier
+    continent: base44.entities.Query.Continent,
+    country: base44.entities.Query.Country,
+    region: base44.entities.Query.Region,
+    departement: base44.entities.Query.Departement,
+    ville: base44.entities.Query.Ville,
+    arrondissement: base44.entities.Query.Arrondissement,
+    quartier: base44.entities.Query.Quartier
 };
 
 export default function GeoConfig() {
