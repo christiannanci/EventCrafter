@@ -58,6 +58,7 @@ export default function MembershipUpgradeDialog({ open, onOpenChange, currentUse
         status: 'pending',
         contract_amount: plan.price,
         provider_account_id: currentUser.id,
+        created_by_id: currentUser.id,
         payment_terms: `Subscription to ${plan.name} plan - ${plan.billing_cycle} billing`,
         jurisdiction_clause: "This contract is governed by the laws of Cameroon.",
         cancellation_terms: plan.legal_terms || "Standard cancellation terms apply."
@@ -184,5 +185,3 @@ export default function MembershipUpgradeDialog({ open, onOpenChange, currentUse
     </Dialog>
   );
 }
-
-
