@@ -21,8 +21,22 @@ export default function Login() {
 
     try {
       if (isRegister) {
-        const { error } = await supabase.auth.signUp({ email, password });
+        const { data, error } = await supabase.auth.signUp({ email, password });
         if (error) throw error;
+
+        // Créer la ligne app_user correspondante pour ce nouveau compte
+        const newUser = data.user;
+        if (newUser) {
+          const { error: appUserError } = await supabase.from('app_user').insert({
+            id: newUser.id,
+            email: newUser.email,
+            role: 'user'
+          });
+          if (appUserError) {
+            console.error('Erreur création app_user:', appUserError);
+          }
+        }
+
         navigate('/ProfileSelection');
       } else {
         const { data, error } = await supabase.auth.signInWithPassword({ email, password });
